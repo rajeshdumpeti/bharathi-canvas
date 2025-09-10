@@ -21,7 +21,6 @@ const TaskForm = ({ task, onSave, onCancel }) => {
 
     return (
         <form onSubmit={handleSubmit} className="p-6">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">{task.id ? 'Edit Task' : 'New Task'}</h3>
             <div className="space-y-4">
                 <div>
                     <label className="block text-gray-700 text-sm font-semibold mb-2">Title</label>
@@ -78,9 +77,12 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                         onChange={handleChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     >
-                        <option value="FE">FE</option>
-                        <option value="BE">BE</option>
-                        <option value="DB">DB</option>
+                        <option value="FE">Frontend</option>
+                        <option value="BE">Backend</option>
+                        <option value="DB">Database</option>
+                        <option value="DB">Architecture</option>
+                        <option value="DB">Miscellaneous
+                        </option>
                     </select>
                 </div>
             </div>

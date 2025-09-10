@@ -1,17 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TaskCard from './TaskCard';
 
 const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, onEditTask, onConfirmDeleteTask, onConfirmDeleteColumn }) => {
+    const [isCollapsed, setIsCollapsed] = useState(true);
     const columnTasks = tasks.filter(task => task.status === id);
 
     return (
         <div
-            className="flex-1 min-w-[280px] max-w-xs bg-gray-100 rounded-xl p-4 m-2 shadow-md transition-all duration-300 transform hover:shadow-xl"
+            className="flex-1 min-w-[280px] max-w-xs bg-gray-100 rounded-xl p-4 m-2 shadow-md transition-all duration-300 transform hover:shadow-xl md:flex-grow-0 md:min-w-[300px]"
             onDragOver={onDragOver}
             onDrop={(e) => onDrop(e, id)}
         >
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">{title} ({columnTasks.length})</h2>
+                <div className="flex justify-between items-center mb-4 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
+                    <h2 className="text-xl font-bold text-gray-800">{title} ({columnTasks.length})</h2>
+                    <span className="md:hidden ml-2">
+                        <svg className={`w-6 h-6 transform transition-transform duration-200 ${isCollapsed ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </span>
+                </div>
                 <div className="flex space-x-2">
                     <button
                         onClick={() => onAddTask(id)}
@@ -31,7 +39,7 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
                     </button>
                 </div>
             </div>
-            <div className="flex flex-col space-y-3 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 #F7FAFC' }}>
+            <div className={`flex flex-col space-y-3 overflow-y-auto ${isCollapsed ? 'hidden md:block' : 'block'}`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 #F7FAFC' }}>
                 {columnTasks.map(task => (
                     <TaskCard
                         key={task.id}
