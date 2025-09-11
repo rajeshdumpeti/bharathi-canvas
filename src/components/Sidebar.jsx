@@ -35,13 +35,21 @@ const Sidebar = ({
 
     const handleAddProject = (e) => {
         e.preventDefault();
-        onAddProject(newProjectName);
+        const name = (newProjectName || "").trim();
+
+        // basic UX guardrails: no empty, no duplicates (case-insensitive)
+        if (!name) return;
+        const exists = projects.some(
+            (p) => p.name.trim().toLowerCase() === name.toLowerCase()
+        );
+        if (exists) return;
+
+        onAddProject(name);
         setNewProjectName("");
     };
-
     return (
         <div
-            className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-40 bg-gray-900 text-white w-64 p-4 flex flex-col`}
+            className={"flex flex-1 flex-col pt-16 transition-all duration-300"}
         >
             {/* Sidebar Header */}
             <div className="flex justify-between items-center mb-6">

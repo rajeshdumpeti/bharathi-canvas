@@ -80,9 +80,8 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                         <option value="FE">Frontend</option>
                         <option value="BE">Backend</option>
                         <option value="DB">Database</option>
-                        <option value="DB">Architecture</option>
-                        <option value="DB">Miscellaneous
-                        </option>
+                        <option value="ARCH">Architecture</option>
+                        <option value="MISC">Miscellaneous</option>
                     </select>
                 </div>
             </div>

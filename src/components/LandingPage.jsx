@@ -4,6 +4,11 @@ import Header from './Header';
 const LandingPage = ({ onStart }) => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+            <Header
+                onToggleSidebar={() => { }}
+                showHamburger={'board'}
+                showTitle={true}
+            />
             <div className="flex flex-1 flex-col  p-4 text-center">
                 <h1 className="text-5xl font-bold text-gray-900 mb-4 animate-fade-in-down">Namaste!</h1>
                 <p className="text-lg text-gray-600 mb-8 animate-fade-in-up">Welcome to Bharathi's Canvas</p>

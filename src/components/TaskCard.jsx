@@ -21,6 +21,7 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
         {task.architecture && <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">{task.architecture}</span>}
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+          aria-label={`Delete task ${task.title}`}
           className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

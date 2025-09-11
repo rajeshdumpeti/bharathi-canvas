@@ -23,6 +23,7 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
                 <div className="flex space-x-2">
                     <button
                         onClick={() => onAddTask(id)}
+                        aria-label={`Add task to ${title}`}
                         className="p-1.5 rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,6 +32,7 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
                     </button>
                     <button
                         onClick={() => onConfirmDeleteColumn(id)}
+                        aria-label={`Delete ${title} column`}
                         className="p-1.5 rounded-full bg-red-200 text-red-600 hover:bg-red-300 transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -39,17 +41,27 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
                     </button>
                 </div>
             </div>
-            <div className={`flex flex-col space-y-3 overflow-y-auto ${isCollapsed ? 'hidden md:block' : 'block'}`} style={{ scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 #F7FAFC' }}>
-                {columnTasks.map(task => (
-                    <TaskCard
-                        key={task.id}
-                        task={task}
-                        onDragStart={(e) => onDragStart(e, task.id)}
-                        onEdit={() => onEditTask(task)}
-                        onDelete={onConfirmDeleteTask}
-                    />
-                ))}
+            <div
+                className={`flex flex-col space-y-3 overflow-y-auto ${isCollapsed ? 'hidden md:block' : 'block'}`}
+                style={{ scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 #F7FAFC' }}
+            >
+                {columnTasks.length === 0 ? (
+                    <div className="text-sm text-gray-500 italic py-6 text-center select-none">
+                        No tasks here yet — click the ➕ to add one.
+                    </div>
+                ) : (
+                    columnTasks.map((task) => (
+                        <TaskCard
+                            key={task.id}
+                            task={task}
+                            onDragStart={(e) => onDragStart(e, task.id)}
+                            onEdit={() => onEditTask(task)}
+                            onDelete={onConfirmDeleteTask}
+                        />
+                    ))
+                )}
             </div>
+
         </div>
     );
 };
