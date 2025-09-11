@@ -41,6 +41,7 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
                     </button>
                 </div>
             </div>
+
             <div
                 className={`flex flex-col space-y-3 overflow-y-auto ${isCollapsed ? 'hidden md:block' : 'block'}`}
                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 #F7FAFC' }}
@@ -61,7 +62,6 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
                     ))
                 )}
             </div>
-
         </div>
     );
 };

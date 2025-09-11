@@ -11,18 +11,13 @@ const Sidebar = ({
     onConfirmDeleteProject,
 }) => {
     const [newProjectName, setNewProjectName] = useState("");
+
     const projectTasks = tasks.filter(
         (task) => selectedProject && task.project === selectedProject.id
     );
-    const todoCount = projectTasks.filter(
-        (task) => task.status === "to-do"
-    ).length;
-    const inProgressCount = projectTasks.filter(
-        (task) => task.status === "in-progress"
-    ).length;
-    const doneCount = projectTasks.filter(
-        (task) => task.status === "done"
-    ).length;
+    const todoCount = projectTasks.filter((task) => task.status === "to-do").length;
+    const inProgressCount = projectTasks.filter((task) => task.status === "in-progress").length;
+    const doneCount = projectTasks.filter((task) => task.status === "done").length;
     const totalTasks = projectTasks.length;
     const progressPercentage =
         totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0;
@@ -36,8 +31,6 @@ const Sidebar = ({
     const handleAddProject = (e) => {
         e.preventDefault();
         const name = (newProjectName || "").trim();
-
-        // basic UX guardrails: no empty, no duplicates (case-insensitive)
         if (!name) return;
         const exists = projects.some(
             (p) => p.name.trim().toLowerCase() === name.toLowerCase()
@@ -47,10 +40,9 @@ const Sidebar = ({
         onAddProject(name);
         setNewProjectName("");
     };
+
     return (
-        <div
-            className={"flex flex-1 flex-col pt-16 transition-all duration-300"}
-        >
+        <div className="flex flex-col h-full min-h-0 transition-all duration-300 pt-2">
             {/* Sidebar Header */}
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold">Projects</h3>
@@ -61,8 +53,8 @@ const Sidebar = ({
                 </button>
             </div>
 
-            {/* Project List */}
-            <ul className="flex-1 space-y-2 mb-6 overflow-y-auto">
+            {/* Project List (only this scrolls) */}
+            <ul className="flex-1 space-y-2 mb-6 overflow-y-auto max-h-full min-h-0 pr-2 custom-scrollbar">
                 {projects.map((project) => (
                     <li
                         key={project.id}
@@ -71,7 +63,7 @@ const Sidebar = ({
                         <span
                             onClick={() => {
                                 onSelectProject(project);
-                                onToggleSidebar(); // Close sidebar on project click
+                                onToggleSidebar(); // Close sidebar on small screens
                             }}
                             className="flex-1 pr-2"
                         >
@@ -106,7 +98,7 @@ const Sidebar = ({
                 ))}
             </ul>
 
-            {/* Add Project Form */}
+            {/* Add Project */}
             <form onSubmit={handleAddProject} className="mb-6">
                 <input
                     type="text"

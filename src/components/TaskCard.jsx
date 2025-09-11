@@ -15,10 +15,12 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
       onClick={onEdit}
       title={task.description}
     >
-
       <div className="flex justify-between items-center mb-2">
-
-        {task.architecture && <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">{task.architecture}</span>}
+        {task.architecture && (
+          <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+            {task.architecture}
+          </span>
+        )}
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
           aria-label={`Delete task ${task.title}`}
@@ -29,15 +31,14 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
           </svg>
         </button>
       </div>
+
       <h4 className="font-semibold text-sm text-gray-800">{task.title}</h4>
-
-      {task.description && <p className="text-sm text-gray-600 break-words mb-4">{task.description}</p>} {/* New line for description */}
-
+      {task.description && (
+        <p className="text-sm text-gray-600 break-words mb-4">{task.description}</p>
+      )}
       <p className="text-xs text-gray-500 mb-4">
         {task.assignee ? `Assigned to: ${String(task.assignee)}` : 'Unassigned'}
       </p>
-
-
     </div>
   );
 };

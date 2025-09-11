@@ -6,10 +6,10 @@ const LandingPage = ({ onStart }) => {
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
             <Header
                 onToggleSidebar={() => { }}
-                showHamburger={'board'}
+                showHamburger={false}
                 showTitle={true}
             />
-            <div className="flex flex-1 flex-col  p-4 text-center">
+            <div className="flex flex-1 flex-col p-4 text-center">
                 <h1 className="text-5xl font-bold text-gray-900 mb-4 animate-fade-in-down">Namaste!</h1>
                 <p className="text-lg text-gray-600 mb-8 animate-fade-in-up">Welcome to Bharathi's Canvas</p>
                 <div className="p-8 bg-white rounded-xl shadow-xl w-full max-w-sm transform hover:scale-105 transition-transform duration-300">

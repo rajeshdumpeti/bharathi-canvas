@@ -1,14 +1,14 @@
 import React from 'react';
-import companyImage from '../assests/image.png';
+import companyImage from '../assests/image.png'; // keep your existing path
 
 const Header = ({ onToggleSidebar, showHamburger, showTitle }) => {
     return (
-        <header className="text-white p-6 flex items-center justify-between shadow-xl border-b ">
+        <header className="text-white p-4 flex items-center justify-between shadow-xl border-b border-gray-800">
             <div className="flex items-center space-x-4">
                 {showHamburger && (
                     <button
                         onClick={onToggleSidebar}
-                        className="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="lg:hidden p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <svg
                             className="w-6 h-6"
@@ -28,11 +28,10 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle }) => {
                 )}
                 {showTitle && (
                     <div className="flex items-center space-x-3">
-
                         <img
-                            src={companyImage} // Replace the h1 text with this image
+                            src={companyImage}
                             alt="Bharathi's Canvas Logo"
-                            className="h-25 w-auto max-w-[200px] object-contain"
+                            className="h-10 w-auto object-contain"
                         />
                     </div>
                 )}
