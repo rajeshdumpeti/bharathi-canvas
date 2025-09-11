@@ -1,6 +1,6 @@
 import React from 'react';
-import LogoMonogram from './LogoMonogram';
-import LogoWordmark from './LogoWordmark';
+import LogoMonogram from '../components/LogoMonogram';
+import LogoWordmark from '../components/LogoWordmark';
 
 
 

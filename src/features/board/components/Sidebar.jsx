@@ -9,6 +9,7 @@ const Sidebar = ({
     onToggleSidebar,
     tasks,
     onConfirmDeleteProject,
+    onOpenDocuments
 }) => {
     const [newProjectName, setNewProjectName] = useState("");
 
@@ -124,6 +125,7 @@ const Sidebar = ({
                         style={{ width: `${progressPercentage}%` }}
                     ></div>
                 </div>
+
                 <p className="text-xs text-gray-400 mt-4">{currentDate}</p>
             </div>
         </div>

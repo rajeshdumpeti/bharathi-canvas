@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Modal from './components/Modal';
-import TaskForm from './components/TaskForm';
-import AddColumnModal from './components/AddColumnModal';
-import Column from './components/Column';
-import Sidebar from './components/Sidebar';
-import LandingPage from './components/LandingPage';
-import Header from './components/Header';
+import Modal from '../components/Modal';
+import TaskForm from '../features/board/components/TaskForm';
+import AddColumnModal from '../features/board/components/AddColumnModal';
+import Column from '../features/board/components/Column';
+import Sidebar from '../features/board/components/Sidebar';
+import LandingPage from '../features/landing/LandingPage';
+import Header from '../layout/Header';
 
-import './index.css';
+import '../index';
 
 // Main App component
 const App = () => {
@@ -27,6 +27,7 @@ const App = () => {
   const [isProjectDeleteModalOpen, setIsProjectDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [currentView, setCurrentView] = useState('landing');
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
 
   // Refs for the columns rail & per-column anchors (for tab scrolling)
   const columnsRef = useRef(null);
@@ -571,6 +572,15 @@ const App = () => {
           </button>
         </div>
       </Modal>
+      {/* Document Modal */}
+      <Modal
+        isOpen={isDocumentsOpen}
+        onClose={() => setIsDocumentsOpen(false)}
+        title="Documents"
+        className="bg-white rounded-xl shadow-lg p-6 max-w-5xl w-full"
+      >
+      </Modal>
+
     </div>
   );
 };
