@@ -1,5 +1,8 @@
 import React from 'react';
-import companyImage from '../assests/image.png'; // keep your existing path
+import LogoMonogram from './LogoMonogram';
+import LogoWordmark from './LogoWordmark';
+
+
 
 const Header = ({ onToggleSidebar, showHamburger, showTitle, userInitials = "BC", }) => {
     return (
@@ -26,14 +29,12 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle, userInitials = "BC"
                         </svg>
                     </button>
                 )}
-
                 {showTitle && (
-                    <div className="flex items-center space-x-3">
-                        <img
-                            src={companyImage}
-                            alt="Bharathi's Canvas Logo"
-                            className="h-10 w-auto object-contain"
-                        />
+                    <div className="flex items-center gap-3">
+                        {/* pick one: LogoMark or LogoMonogram */}
+                        <LogoMonogram className="h-8 w-8 text-white" />
+                        {/* Wordmark next to the icon */}
+                        <LogoWordmark />
                     </div>
                 )}
             </div>

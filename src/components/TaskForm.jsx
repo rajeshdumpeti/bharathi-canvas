@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 
 const TaskForm = ({ task, onSave, onCancel }) => {
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-GB');
+
     const [formData, setFormData] = useState({
         title: task.title,
         description: task.description,
@@ -11,10 +14,9 @@ const TaskForm = ({ task, onSave, onCancel }) => {
         dueDate: task.dueDate || '',
     });
 
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = (e) => {
@@ -24,55 +26,21 @@ const TaskForm = ({ task, onSave, onCancel }) => {
 
     return (
         <form onSubmit={handleSubmit} className="p-6">
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-gray-700 text-sm font-semibold mb-2">Title</label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="Task Title"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-semibold mb-2">Description</label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder="Detailed description..."
-                        rows="3"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    ></textarea>
-                </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-semibold mb-2">Assignee</label>
-                    <input
-                        type="text"
-                        name="assignee"
-                        value={formData.assignee}
-                        onChange={handleChange}
-                        placeholder="Assignee Name"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    />
-                </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-semibold mb-2">Priority</label>
-                    <select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    >
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
-                    </select>
-                </div>
+            <div className="space-y-5">
+                {/* Row 1: Title + Architecture */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Title</label>
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            placeholder="Task Title"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            required
+                        />
+                    </div>
                     <div>
                         <label className="block text-gray-700 text-sm font-semibold mb-2">Architecture</label>
                         <select
@@ -88,18 +56,55 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                             <option value="MISC">Miscellaneous</option>
                         </select>
                     </div>
+                </div>
 
+                {/* Row 2: Description (full width) */}
+                <div>
+                    <label className="block text-gray-700 text-sm font-semibold mb-2">Description</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        placeholder="Detailed description..."
+                        rows="3"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    ></textarea>
+                </div>
+
+                {/* Row 3: Assignee + Priority */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-gray-700 text-sm font-semibold mb-2">Created on</label>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Assignee</label>
                         <input
-                            type="date"
-                            name="createdAt"
-                            value={formData.createdAt}
+                            type="text"
+                            name="assignee"
+                            value={formData.assignee}
                             onChange={handleChange}
+                            placeholder="Assignee Name"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                         />
                     </div>
+                    <div>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Priority</label>
+                        <select
+                            name="priority"
+                            value={formData.priority}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        >
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
 
+                {/* Row 4: Created on + Complete by */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Created on</label>
+                        <p className="w-full px-4 py-2 border border-gray-300 rounded-lg   focus:ring-blue-500 transition-all">{formattedDate}</p>
+                    </div>
                     <div>
                         <label className="block text-gray-700 text-sm font-semibold mb-2">Complete by</label>
                         <input
@@ -111,8 +116,8 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                         />
                     </div>
                 </div>
-
             </div>
+
             <div className="flex justify-end space-x-4 mt-6">
                 <button
                     type="button"
