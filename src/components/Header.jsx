@@ -1,7 +1,7 @@
 import React from 'react';
 import companyImage from '../assests/image.png'; // keep your existing path
 
-const Header = ({ onToggleSidebar, showHamburger, showTitle }) => {
+const Header = ({ onToggleSidebar, showHamburger, showTitle, userInitials = "BC", }) => {
     return (
         <header className="text-white p-4 flex items-center justify-between shadow-xl border-b border-gray-800">
             <div className="flex items-center space-x-4">
@@ -26,6 +26,7 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle }) => {
                         </svg>
                     </button>
                 )}
+
                 {showTitle && (
                     <div className="flex items-center space-x-3">
                         <img
@@ -36,7 +37,16 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle }) => {
                     </div>
                 )}
             </div>
-        </header>
+
+            <div className="flex items-center gap-6">
+                <button
+                    className="hidden md:inline text-gray-300 hover:text-white transition-colors"
+                >
+                    Docs
+                </button>
+            </div>
+
+        </header >
     );
 };
 

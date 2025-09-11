@@ -7,7 +7,10 @@ const TaskForm = ({ task, onSave, onCancel }) => {
         assignee: task.assignee,
         priority: task.priority,
         architecture: task.architecture,
+        createdAt: task.createdAt || new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+        dueDate: task.dueDate || '',
     });
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -69,21 +72,46 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                         <option value="Low">Low</option>
                     </select>
                 </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-semibold mb-2">Architecture</label>
-                    <select
-                        name="architecture"
-                        value={formData.architecture}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    >
-                        <option value="FE">Frontend</option>
-                        <option value="BE">Backend</option>
-                        <option value="DB">Database</option>
-                        <option value="ARCH">Architecture</option>
-                        <option value="MISC">Miscellaneous</option>
-                    </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Architecture</label>
+                        <select
+                            name="architecture"
+                            value={formData.architecture}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        >
+                            <option value="FE">Frontend</option>
+                            <option value="BE">Backend</option>
+                            <option value="DB">Database</option>
+                            <option value="ARCH">Architecture</option>
+                            <option value="MISC">Miscellaneous</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Created on</label>
+                        <input
+                            type="date"
+                            name="createdAt"
+                            value={formData.createdAt}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Complete by</label>
+                        <input
+                            type="date"
+                            name="dueDate"
+                            value={formData.dueDate}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        />
+                    </div>
                 </div>
+
             </div>
             <div className="flex justify-end space-x-4 mt-6">
                 <button

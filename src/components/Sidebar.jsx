@@ -55,47 +55,42 @@ const Sidebar = ({
 
             {/* Project List (only this scrolls) */}
             <ul className="flex-1 space-y-2 mb-6 overflow-y-auto max-h-full min-h-0 pr-2 custom-scrollbar">
-                {projects.map((project) => (
-                    <li
-                        key={project.id}
-                        className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${selectedProject?.id === project.id ? "bg-blue-600 text-white" : "hover:bg-gray-700"}`}
-                    >
-                        <span
-                            onClick={() => {
-                                onSelectProject(project);
-                                onToggleSidebar(); // Close sidebar on small screens
-                            }}
-                            className="flex-1 pr-2"
-                        >
-                            {project.name}
-                        </span>
-                        {projects.length > 1 && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onConfirmDeleteProject(project);
-                                }}
-                                className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                                title="Delete Project"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                </svg>
-                            </button>
-                        )}
+                {projects.length === 0 ? (
+                    <li className="p-2 rounded-lg bg-gray-800/70 text-gray-300 text-sm select-none">
+                        Your project goes here
                     </li>
-                ))}
+                ) : (
+                    projects.map((project) => (
+                        <li
+                            key={project.id}
+                            className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${selectedProject?.id === project.id ? "bg-blue-600 text-white" : "hover:bg-gray-700"}`}
+                        >
+                            <span
+                                onClick={() => {
+                                    onSelectProject(project);
+                                    onToggleSidebar();
+                                }}
+                                className="flex-1 pr-2"
+                            >
+                                {project.name}
+                            </span>
+                            {projects.length > 1 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onConfirmDeleteProject(project);
+                                    }}
+                                    className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                                    title="Delete Project"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                    ))
+                )}
             </ul>
 
             {/* Add Project */}

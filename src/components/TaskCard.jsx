@@ -39,6 +39,7 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
       <p className="text-xs text-gray-500 mb-4">
         {task.assignee ? `Assigned to: ${String(task.assignee)}` : 'Unassigned'}
       </p>
+
     </div>
   );
 };
