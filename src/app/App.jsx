@@ -5,6 +5,7 @@ import LandingPage from '../features/landing/LandingPage';
 import BoardView from '../features/board/BoardView';
 import DocumentsView from '../features/documents/DocumentsView'; // stub or your real view
 import ReleaseNotesView from '../features/release-notes/ReleaseNotesView';
+import ProjectHubView from '../features/projectHub/ProjectHubView';
 
 const App = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const App = () => {
       <Route path="/board" element={<BoardView />} />
       <Route path="/documents" element={<DocumentsView />} />
       <Route path="/release-notes" element={<ReleaseNotesView />} />
+      <Route path="/hub" element={<ProjectHubView />} />
 
       {/* safety net */}
       <Route path="*" element={<Navigate to="/" replace />} />

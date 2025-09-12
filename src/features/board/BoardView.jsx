@@ -257,16 +257,21 @@ const BoardView = () => {
       {/* Middle row: sidebar + content */}
       <div className="flex-1 min-h-0 w-full">
         <div className="relative h-full w-full flex overflow-hidden">
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+          />
           {/* Sidebar */}
           <aside
-            aria-label="Project sidebar"
+            aria-label="Documents sidebar"
             className={`
               fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-900 text-white
-              transform transition-transform duration-300 ease-in-out
               border-r border-gray-800 overflow-y-auto shrink-0
+              transform transition-transform duration-300 ease-in-out
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0 lg:transform-none
-            `}
+              `}
           >
             <div className="h-full p-4">
               <Sidebar
