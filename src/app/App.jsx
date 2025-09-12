@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LandingPage from '../features/landing/LandingPage';
 import BoardView from '../features/board/BoardView';
 import DocumentsView from '../features/documents/DocumentsView'; // stub or your real view
+import ReleaseNotesView from '../features/release-notes/ReleaseNotesView';
 
 const App = () => {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ const App = () => {
       />
       <Route path="/board" element={<BoardView />} />
       <Route path="/documents" element={<DocumentsView />} />
+      <Route path="/release-notes" element={<ReleaseNotesView />} />
+
       {/* safety net */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

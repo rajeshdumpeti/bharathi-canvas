@@ -137,7 +137,20 @@ const BoardView = () => {
   const handleDrop = (e, newColumnId) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('taskId');
-    const updated = tasks.map((t) => (t.id === taskId ? { ...t, status: newColumnId } : t));
+    const nowISO = new Date().toISOString();
+
+    const updated = tasks.map((t) => {
+      if (t.id !== taskId) return t;
+      const wasDone = t.status === 'done';
+      const willBeDone = newColumnId === 'done';
+      return {
+        ...t,
+        status: newColumnId,
+        // stamp completion time the moment it lands in "done"
+        completedAt: willBeDone && !wasDone ? nowISO : t.completedAt,
+      };
+    });
+
     setTasks(updated);
     localStorage.setItem(LS_TASKS, JSON.stringify(updated));
   };
