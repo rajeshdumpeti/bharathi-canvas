@@ -1,6 +1,7 @@
 import React from 'react';
-import LogoMonogram from '../components/LogoMonogram';
-import LogoWordmark from '../components/LogoWordmark';
+import LogoMonogram from '../components/ui/LogoMonogram';
+import LogoWordmark from '../components/ui/LogoWordmark';
+import { Link } from 'react-router-dom';
 
 
 
@@ -29,22 +30,26 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle, userInitials = "BC"
                         </svg>
                     </button>
                 )}
+
                 {showTitle && (
-                    <div className="flex items-center gap-3">
-                        {/* pick one: LogoMark or LogoMonogram */}
-                        <LogoMonogram className="h-8 w-8 text-white" />
-                        {/* Wordmark next to the icon */}
-                        <LogoWordmark />
-                    </div>
+                    <Link to="/">
+                        <div className="flex items-center gap-3">
+                            {/* pick one: LogoMark or LogoMonogram */}
+                            <LogoMonogram className="h-8 w-8 text-white" />
+                            {/* Wordmark next to the icon */}
+                            <LogoWordmark />
+                        </div>
+                    </Link>
                 )}
             </div>
 
             <div className="flex items-center gap-6">
-                <button
-                    className="hidden md:inline text-gray-300 hover:text-white transition-colors"
+                <Link
+                    to="/"
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
                 >
-                    Docs
-                </button>
+                    Home
+                </Link>
             </div>
 
         </header >
