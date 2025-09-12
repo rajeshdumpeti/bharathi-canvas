@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/bharathi-canvas/static/css/main.a56e6425.css",
+    "main.js": "/bharathi-canvas/static/js/main.ec8aa375.js",
+    "index.html": "/bharathi-canvas/index.html",
+    "main.a56e6425.css.map": "/bharathi-canvas/static/css/main.a56e6425.css.map",
+    "main.ec8aa375.js.map": "/bharathi-canvas/static/js/main.ec8aa375.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a56e6425.css",
+    "static/js/main.ec8aa375.js"
+  ]
+}
