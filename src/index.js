@@ -1,14 +1,20 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, HashRouter } from 'react-router-dom';
 import App from './app/App';
 import './styles/index.css';
 
-const root = createRoot(document.getElementById('root'));
+// Use HashRouter in production (GitHub Pages), BrowserRouter in dev
+const Router =
+  process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
+
+const container = document.getElementById('root');
+const root = createRoot(container);
+
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <Router>
       <App />
-    </BrowserRouter>
+    </Router>
   </React.StrictMode>
 );
