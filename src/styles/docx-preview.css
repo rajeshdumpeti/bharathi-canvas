@@ -1,0 +1,53 @@
+/* Minimal styles to make docx-preview output readable */
+.docx {
+    background: #ffffff;
+    color: #111827;
+    /* gray-900 */
+    line-height: 1.5;
+    font-size: 14px;
+    padding: 1rem;
+}
+
+.docx p {
+    margin: 0.5rem 0;
+}
+
+.docx h1,
+.docx h2,
+.docx h3,
+.docx h4,
+.docx h5,
+.docx h6 {
+    margin: 0.75rem 0 0.5rem;
+    font-weight: 700;
+}
+
+.docx table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.docx th,
+.docx td {
+    border: 1px solid #e5e7eb;
+    padding: 6px;
+}
+
+.docx th {
+    background: #f9fafb;
+}
+
+.docx a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.docx img {
+    max-width: 100%;
+    height: auto;
+}
+
+.docx ul,
+.docx ol {
+    padding-left: 1.25rem;
+}

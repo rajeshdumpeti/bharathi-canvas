@@ -12,14 +12,9 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
             onDrop={(e) => onDrop(e, id)}
         >
             <div className="flex justify-between items-center mb-4">
-                <div className="flex justify-between items-center mb-4 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
-                    <h2 className="text-xl font-bold text-gray-800">{title} ({columnTasks.length})</h2>
-                    <span className="md:hidden ml-2">
-                        <svg className={`w-6 h-6 transform transition-transform duration-200 ${isCollapsed ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </span>
-                </div>
+
+                <h2 className="text-xl font-bold text-gray-800">{title} ({columnTasks.length})</h2>
+
                 <div className="flex space-x-2">
                     <button
                         onClick={() => onAddTask(id)}

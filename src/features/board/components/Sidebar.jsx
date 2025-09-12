@@ -75,7 +75,7 @@ const Sidebar = ({
                             >
                                 {project.name}
                             </span>
-                            {projects.length > 1 && (
+                            {projects.length > 0 && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
