@@ -9,23 +9,42 @@ import React, {
 export const useProjectHubContext = () => useContext(ProjectHubContext)
 
 // export default useProjectHub;
-const STORAGE_KEY = 'projects';               // shared with Board
-const SELECTED_KEY = 'hub:selectedProjectId'; // hub-only selection
+const HUB_STORAGE_KEY = 'hub:projects';     // Project Hub’s own list
+const BOARD_STORAGE_KEY = 'projects';         // Board’s list (for one-time migration)
+const SELECTED_KEY = 'hub:selectedProjectId';
 
-const ProjectHubContext = createContext(undefined);
+export const ProjectHubContext = createContext(undefined);
+
+function persistProjects(list) {
+    localStorage.setItem(HUB_STORAGE_KEY, JSON.stringify(list));
+}
 
 function loadProjects() {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const list = raw ? JSON.parse(raw) : [];
-        return Array.isArray(list) ? list : [];
+        // Prefer hub list
+        const hubRaw = localStorage.getItem(HUB_STORAGE_KEY);
+        if (hubRaw) {
+            const list = JSON.parse(hubRaw);
+            return Array.isArray(list) ? list : [];
+        }
+
+        // One-time migration from Board's "projects"
+        const boardRaw = localStorage.getItem(BOARD_STORAGE_KEY);
+        const boardList = boardRaw ? JSON.parse(boardRaw) : [];
+        const migrated = Array.isArray(boardList)
+            ? boardList.map(p => ({
+                id: p.id,
+                name: p.name,
+                // keep any hub data if it existed, otherwise empty
+                sections: p.sections || {},
+            }))
+            : [];
+
+        persistProjects(migrated);
+        return migrated;
     } catch {
         return [];
     }
-}
-
-function persistProjects(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
 export function ProjectHubProvider({ children }) {
@@ -59,18 +78,10 @@ export function ProjectHubProvider({ children }) {
 
         const id = `${projectName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
 
-        // independent default Board columns so Board stays happy
-        const defaults = [
-            { id: 'to-do', title: 'To Do' },
-            { id: 'in-progress', title: 'In Progress' },
-            { id: 'done', title: 'Done' },
-        ];
-
         const proj = {
             id,
             name: projectName,
-            columns: defaults.slice(),
-            sections: {}, // where Project Hub stores its section data
+            sections: {}, // Hub keeps its own section data only
         };
 
         const next = [...projects, proj];
@@ -79,6 +90,21 @@ export function ProjectHubProvider({ children }) {
         setSelectedId(id);
         return proj;
     };
+
+
+    const deleteProject = (id) => {
+        const next = projects.filter(p => p.id !== id);
+        setProjects(next);
+        persistProjects(next);
+
+        if (selectedId === id) {
+            const fallback = next[0]?.id || null;
+            setSelectedId(fallback);
+            if (fallback) localStorage.setItem(SELECTED_KEY, fallback);
+            else localStorage.removeItem(SELECTED_KEY);
+        }
+    };
+
 
     const updateSection = (sectionKey, data) => {
         if (!selectedId) return;
@@ -90,13 +116,15 @@ export function ProjectHubProvider({ children }) {
         setProjects(next);
         persistProjects(next);
     };
-
     const value = {
         projects,
         selected,
+        selectedId,
+        setSelectedId: (id) => selectProject(id),
         selectProject,
         addProject,
         updateSection,
+        deleteProject,     // hub-only delete
         refresh,
     };
 

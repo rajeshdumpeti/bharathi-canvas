@@ -30,7 +30,7 @@ export default function MarkdownSectionBase({ sectionKey, placeholder }) {
             <div className="flex items-center gap-2">
                 <div className="ml-auto flex gap-2">
                     {mode === 'read' ? (
-                        <button onClick={() => setMode('edit')} className="px-3 py-2 rounded bg-gray-900 text-white">Edit</button>
+                        <button onClick={() => setMode('edit')} className="px-3 py-2 rounded  text-white">Edit</button>
                     ) : (
                         <>
                             <button onClick={() => setMode('read')} className="px-3 py-2 rounded bg-gray-200">Cancel</button>

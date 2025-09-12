@@ -26,7 +26,7 @@ const BoardView = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);

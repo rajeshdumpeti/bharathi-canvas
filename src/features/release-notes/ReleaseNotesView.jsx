@@ -58,6 +58,7 @@ const ReleaseNotesView = () => {
     const [generatedTasks, setGeneratedTasks] = useState([]);
     const [notesMd, setNotesMd] = useState('');
     const [version, setVersion] = useState('v0.1.0');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Pick last saved release for this project to suggest next version / default "from"
     useEffect(() => {
@@ -159,8 +160,19 @@ const ReleaseNotesView = () => {
 
             <div className="flex-1 min-h-0 w-full">
                 <div className="relative h-full w-full flex overflow-hidden">
+                    <div
+                        onClick={() => setIsSidebarOpen(false)}
+                        className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300
+                ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    />
                     {/* Left filters */}
-                    <aside className="shrink-0 w-72 bg-gray-900 text-white border-r border-gray-800 overflow-y-auto">
+                    <aside className={`
+                fixed lg:static inset-y-0 left-0 z-30 w-72 bg-gray-900 text-white
+                transform transition-transform duration-300 ease-in-out
+                border-r border-gray-800 overflow-y-auto shrink-0
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                lg:translate-x-0 lg:transform-none
+              `}>
                         <FiltersPanel
                             projects={projects}
                             selectedProjectId={selectedProjectId}
