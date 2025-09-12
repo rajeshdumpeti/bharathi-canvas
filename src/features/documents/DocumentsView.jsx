@@ -6,6 +6,7 @@ import useLocalStorage from '../../hooks/useLocalStorage';
 import UploadCard from './components/UploadCard';
 import DocumentsList from './components/DocumentsList';
 import PreviewPane from './components/PreviewPane';
+import Modal from '../../components/ui/Modal'
 
 const LS_DOCS = 'documents';
 const LS_SELECTED_DOC = 'selectedDocumentId';
@@ -17,8 +18,8 @@ const DocumentsView = () => {
     const [pendingFiles, setPendingFiles] = useState([]); // staged in UploadCard
     const [errorMsg, setErrorMsg] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-
+    const [docToDelete, setDocToDelete] = useState(null);
+    const [isDeleteDocOpen, setIsDeleteDocOpen] = useState(false);
     const selectedDoc = useMemo(
         () => documents.find((d) => d.id === selectedId) || null,
         [documents, selectedId]
@@ -110,6 +111,27 @@ const DocumentsView = () => {
         }
     };
 
+    const confirmDeleteDocument = (doc) => {
+        setDocToDelete(doc);
+        setIsDeleteDocOpen(true);
+    };
+
+    const handleDeleteDocument = () => {
+        if (!docToDelete) return;
+        setDocuments((prev) => {
+            const next = prev.filter((d) => d.id !== docToDelete.id);
+            // keep your existing storage key here (replace 'documents' if different)
+            localStorage.setItem('documents', JSON.stringify(next));
+            return next;
+        });
+        // if you keep a selected doc id, clear it if it was deleted
+        if (selectedId === docToDelete.id) {
+            setSelectedId(null);
+        }
+        setIsDeleteDocOpen(false);
+        setDocToDelete(null);
+    };
+
     return (
         <div className="h-screen w-full flex flex-col bg-gray-50">
             {/* Header */}
@@ -131,12 +153,12 @@ const DocumentsView = () => {
                     <aside
                         aria-label="Documents sidebar"
                         className={`
-      fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-900 text-white
-      border-r border-gray-800 overflow-y-auto shrink-0
-      transform transition-transform duration-300 ease-in-out
-      ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      lg:translate-x-0 lg:transform-none
-    `}
+                            fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-900 text-white
+                            border-r border-gray-800 overflow-y-auto shrink-0
+                            transform transition-transform duration-300 ease-in-out
+                            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                            lg:translate-x-0 lg:transform-none
+                            `}
                     >
                         <div className="h-full p-4 space-y-6">
                             <UploadCard
@@ -148,6 +170,7 @@ const DocumentsView = () => {
                             />
 
                             <DocumentsList
+                                onConfirmDelete={confirmDeleteDocument}
                                 documents={documents}
                                 selectedId={selectedId}
                                 onSelect={(id) => {
@@ -176,6 +199,30 @@ const DocumentsView = () => {
                                 </div>
                             </div>
                         </div>
+                        <Modal
+                            isOpen={isDeleteDocOpen}
+                            onClose={() => { setIsDeleteDocOpen(false); setDocToDelete(null); }}
+                            title="Delete document?"
+                        >
+                            <p className="text-gray-700">
+                                {`Are you sure you want to delete “${docToDelete?.name || 'this file'}”? This action cannot be undone.`}
+                            </p>
+                            <div className="flex justify-between space-x-3 mt-6">
+                                <button
+                                    onClick={() => { setIsDeleteDocOpen(false); setDocToDelete(null); }}
+                                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteDocument}
+                                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </Modal>
+
                     </main>
                 </div>
 

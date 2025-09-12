@@ -13,7 +13,6 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
       draggable
       onDragStart={onDragStart}
       onClick={onEdit}
-      title={task.description}
     >
       <div className="flex justify-between items-center mb-2">
         {task.architecture && (
@@ -23,8 +22,8 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-          aria-label={`Delete task ${task.title}`}
-          className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+          className="p-2 -m-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+          aria-label="Delete task"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -34,12 +33,15 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
 
       <h4 className="font-semibold text-sm text-gray-800">{task.title}</h4>
       {task.description && (
-        <p className="text-sm text-gray-600 break-words mb-4">{task.description}</p>
+        <p className="text-sm text-gray-600 break-words whitespace-pre-line mb-3">
+          {task.description}
+        </p>
       )}
-      <p className="text-xs text-gray-500 mb-4">
-        {task.assignee ? `Assigned to: ${String(task.assignee)}` : 'Unassigned'}
-      </p>
-
+      <div className="space-y-1 text-xs text-gray-500 mb-2">
+        <p>{task.assignee ? `Assigned to: ${String(task.assignee)}` : 'Unassigned'}</p>
+        {task.createdAt && <p>Created on: {task.createdAt}</p>}
+        {task.dueDate && <p>Complete by: {task.dueDate}</p>}
+      </div>
     </div>
   );
 };

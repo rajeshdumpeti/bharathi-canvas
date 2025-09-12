@@ -42,7 +42,7 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                         />
                     </div>
                     <div>
-                        <label className="block text-gray-700 text-sm font-semibold mb-2">Architecture</label>
+                        <label className="block text-gray-700 text-sm font-semibold mb-2">Technology</label>
                         <select
                             name="architecture"
                             value={formData.architecture}

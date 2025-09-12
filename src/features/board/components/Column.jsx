@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import TaskCard from './TaskCard';
 
 const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, onEditTask, onConfirmDeleteTask, onConfirmDeleteColumn }) => {
-    const [isCollapsed, setIsCollapsed] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const columnTasks = tasks.filter(task => task.status === id);
 
     return (
@@ -38,7 +38,7 @@ const Column = ({ title, id, tasks, onAddTask, onDrop, onDragOver, onDragStart, 
             </div>
 
             <div
-                className={`flex flex-col space-y-3 overflow-y-auto ${isCollapsed ? 'hidden md:block' : 'block'}`}
+                className={`flex flex-col space-y-3 overflow-y-auto ${isCollapsed ? 'hidden' : 'block'}`}
                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#E2E8F0 #F7FAFC' }}
             >
                 {columnTasks.length === 0 ? (

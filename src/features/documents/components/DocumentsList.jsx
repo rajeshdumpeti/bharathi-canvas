@@ -6,7 +6,7 @@ const iconFor = (doc) => {
     return '📃';
 };
 
-const DocumentsList = ({ documents, selectedId, onSelect, onDelete }) => {
+const DocumentsList = ({ documents, selectedId, onSelect, onDelete, onConfirmDelete }) => {
     return (
         <div>
             <h3 className="text-sm font-semibold text-gray-100 mb-2">Files</h3>
@@ -31,7 +31,7 @@ const DocumentsList = ({ documents, selectedId, onSelect, onDelete }) => {
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onDelete(d);
+                                    onConfirmDelete(d);
                                 }}
                                 className="p-1 rounded hover:bg-gray-700"
                                 title="Delete"

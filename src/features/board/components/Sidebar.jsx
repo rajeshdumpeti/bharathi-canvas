@@ -95,7 +95,7 @@ const Sidebar = ({
             </ul>
 
             {/* Add Project */}
-            <form onSubmit={handleAddProject} className="mb-6">
+            <form onSubmit={handleAddProject} className="mb-6 space-y-2">
                 <input
                     type="text"
                     value={newProjectName}
@@ -103,7 +103,18 @@ const Sidebar = ({
                     placeholder="New project name"
                     className="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                <button
+                    type="submit"
+                    disabled={!newProjectName.trim()}
+                    className={`w-full py-2 rounded-lg font-semibold transition
+      ${newProjectName.trim()
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
+                >
+                    Add
+                </button>
             </form>
+
 
             {/* Dashboard Overview */}
             <div className="p-4 bg-gray-800 rounded-lg">

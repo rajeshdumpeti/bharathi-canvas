@@ -26,7 +26,7 @@ const BoardView = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);
@@ -244,13 +244,6 @@ const BoardView = () => {
       {/* Middle row: sidebar + content */}
       <div className="flex-1 min-h-0 w-full">
         <div className="relative h-full w-full flex overflow-hidden">
-          {/* mobile backdrop */}
-          <div
-            onClick={() => setIsSidebarOpen(false)}
-            className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300
-              ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          />
-
           {/* Sidebar */}
           <aside
             aria-label="Project sidebar"
