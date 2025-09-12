@@ -64,11 +64,11 @@ const LandingPage = ({ onStart, onStartDocs }) => {
                             Open Release Notes
                         </Link>
                     </div>
-                    <div className="p-8 bg-white rounded-xl shadow-xl w-full max-w-sm transform hover:scale-105 transition-transform duration-300">
+                    <div className="p-8 bg-white rounded-xl shadow-xl transform hover:scale-[1.01] transition-transform duration-300">
                         <h2 className="text-2xl font-semibold mb-4">Project Hub</h2>
                         <p className="text-sm text-gray-500 mb-6">Specs, architecture, APIs, links & more—organized per project.</p>
                         <Link
-                            to="/hub"
+                            to="/project-hub"
                             className="block w-full text-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors"
                         >
                             Open Project Hub

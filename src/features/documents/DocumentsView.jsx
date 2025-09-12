@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
 import useLocalStorage from '../../hooks/useLocalStorage';
@@ -17,7 +17,7 @@ const DocumentsView = () => {
 
     const [pendingFiles, setPendingFiles] = useState([]); // staged in UploadCard
     const [errorMsg, setErrorMsg] = useState('');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [docToDelete, setDocToDelete] = useState(null);
     const [isDeleteDocOpen, setIsDeleteDocOpen] = useState(false);
     const selectedDoc = useMemo(
@@ -25,12 +25,7 @@ const DocumentsView = () => {
         [documents, selectedId]
     );
 
-    // Open by default on mobile; desktop shows sidebar always (but not as a drawer)
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setIsSidebarOpen(window.innerWidth < 1024);
-        }
-    }, [])
+
 
     const addDocuments = async (files) => {
         setErrorMsg('');

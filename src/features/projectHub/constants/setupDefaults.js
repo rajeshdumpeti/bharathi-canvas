@@ -1,0 +1,32 @@
+export const DEFAULT_SETUP = {
+    summary: '',
+    repoUrl: '',
+    issueTrackerUrl: '',
+    designDocUrl: '',
+    license: 'MIT',
+    packageManager: 'npm',
+    nodeVersion: '',
+    framework: '',
+    branchStrategy: 'trunk',
+    techStack: ['React', 'TailwindCSS', 'FastAPI'],
+    commands: {
+        install: 'npm install',
+        start: 'npm start',
+        build: 'npm run build',
+        test: 'npm test',
+        lint: 'npm run lint',
+        format: 'npm run format',
+    },
+    environments: [
+        { name: 'Dev', appUrl: '', apiUrl: '' },
+        { name: 'Staging', appUrl: '', apiUrl: '' },
+        { name: 'Prod', appUrl: '', apiUrl: '' },
+    ],
+    envVars: [],
+    tooling: {
+        lint: 'ESLint',
+        format: 'Prettier',
+        typecheck: 'TypeScript (optional)',
+    },
+    contacts: [],
+};
