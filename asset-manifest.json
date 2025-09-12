@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/bharathi-canvas/static/css/main.a56e6425.css",
-    "main.js": "/bharathi-canvas/static/js/main.ec8aa375.js",
+    "main.css": "/bharathi-canvas/static/css/main.f66662ad.css",
+    "main.js": "/bharathi-canvas/static/js/main.65ee24a8.js",
     "index.html": "/bharathi-canvas/index.html",
-    "main.a56e6425.css.map": "/bharathi-canvas/static/css/main.a56e6425.css.map",
-    "main.ec8aa375.js.map": "/bharathi-canvas/static/js/main.ec8aa375.js.map"
+    "main.f66662ad.css.map": "/bharathi-canvas/static/css/main.f66662ad.css.map",
+    "main.65ee24a8.js.map": "/bharathi-canvas/static/js/main.65ee24a8.js.map"
   },
   "entrypoints": [
-    "static/css/main.a56e6425.css",
-    "static/js/main.ec8aa375.js"
+    "static/css/main.f66662ad.css",
+    "static/js/main.65ee24a8.js"
   ]
 }
