@@ -1,15 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Footer from '../../layout/Footer';
-import useLocalStorage from '../../hooks/useLocalStorage';
 
 import FiltersPanel from './components/FiltersPanel';
 import PreviewPanel from './components/PreviewPanel';
 import { tasksToMarkdown, classifyTask, suggestNextVersion } from '../../utils/releaseNotes';
-
-const LS_PROJECTS = 'board:projects';
-const LS_TASKS = 'tasks';
-const LS_RELEASES = 'releases';
-const LS_SELECTED_PROJECT = 'selectedProjectId';
+import { storage, RN_NS, BOARD_NS } from '../../packages/storage';
 
 function todayISO() {
     return new Date().toISOString().slice(0, 10);
@@ -45,11 +40,12 @@ const ReleaseEmptyState = () => (
 
 
 const ReleaseNotesView = () => {
-    const [projects] = useLocalStorage(LS_PROJECTS, []);
-    const [tasks] = useLocalStorage(LS_TASKS, []);
-    const [releases, setReleases] = useLocalStorage(LS_RELEASES, []);
-
-    const [selectedProjectId, setSelectedProjectId] = useLocalStorage(LS_SELECTED_PROJECT, '');
+    const [projects, setProjects] = useState(() => storage.get(BOARD_NS, 'projects', []));
+    const [tasks, setTasks] = useState(() => storage.get(BOARD_NS, 'tasks', []));
+    const [releases, setReleases] = useState(() => storage.get(RN_NS, 'releases', []));
+    const [selectedProjectId, setSelectedProjectId] = useState(() =>
+        storage.get(RN_NS, 'selectedProjectId', '')
+    );
     const [fromDate, setFromDate] = useState(daysAgoISO(14));
     const [toDate, setToDate] = useState(todayISO());
     const [grouping, setGrouping] = useState('type');
@@ -77,6 +73,30 @@ const ReleaseNotesView = () => {
         }
         setToDate(todayISO());
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedProjectId]);
+
+    useEffect(() => {
+        const onStorage = (e) => {
+            if (!e) return;
+            if (e.key === `${BOARD_NS}:projects`) {
+                try { setProjects(JSON.parse(e.newValue || '[]')); } catch { setProjects([]); }
+            }
+            if (e.key === `${BOARD_NS}:tasks`) {
+                try { setTasks(JSON.parse(e.newValue || '[]')); } catch { setTasks([]); }
+            }
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
+
+
+    useEffect(() => {
+        storage.set(RN_NS, 'releases', releases);
+    }, [releases]);
+
+    useEffect(() => {
+        if (selectedProjectId) storage.set(RN_NS, 'selectedProjectId', selectedProjectId);
+        else storage.remove(RN_NS, 'selectedProjectId');
     }, [selectedProjectId]);
 
     const projectTasks = useMemo(() => {

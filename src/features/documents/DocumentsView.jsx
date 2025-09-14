@@ -1,18 +1,14 @@
-import React, { useMemo, useState } from 'react';
-import useLocalStorage from '../../hooks/useLocalStorage';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import UploadCard from './components/UploadCard';
 import DocumentsList from './components/DocumentsList';
 import PreviewPane from './components/PreviewPane';
 import Modal from '../../components/ui/Modal'
-
-const LS_DOCS = 'documents';
-const LS_SELECTED_DOC = 'selectedDocumentId';
+import { storage, DOCS_NS } from '../../packages/storage';
 
 const DocumentsView = () => {
-    const [documents, setDocuments] = useLocalStorage(LS_DOCS, []);
-    const [selectedId, setSelectedId] = useLocalStorage(LS_SELECTED_DOC, null);
-
+    const [documents, setDocuments] = useState(() => storage.get(DOCS_NS, 'items', []));
+    const [selectedId, setSelectedId] = useState(() => storage.get(DOCS_NS, 'selectedId', null));
     const [pendingFiles, setPendingFiles] = useState([]); // staged in UploadCard
     const [errorMsg, setErrorMsg] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,7 +19,14 @@ const DocumentsView = () => {
         [documents, selectedId]
     );
 
+    useEffect(() => {
+        storage.set(DOCS_NS, 'items', documents);
+    }, [documents]);
 
+    useEffect(() => {
+        if (selectedId) storage.set(DOCS_NS, 'selectedId', selectedId);
+        else storage.remove(DOCS_NS, 'selectedId');
+    }, [selectedId]);
 
     const addDocuments = async (files) => {
         setErrorMsg('');
@@ -85,8 +88,12 @@ const DocumentsView = () => {
 
             const updated = [...documents, ...toAdd];
             setDocuments(updated);
+            storage.set(DOCS_NS, 'items', updated);
 
-            if (!selectedId && updated[0]) setSelectedId(updated[0].id);
+            if (!selectedId && updated[0]) {
+                setSelectedId(updated[0].id);
+                storage.set(DOCS_NS, 'selectedId', updated[0].id);
+            }
 
             // clear staged selection
             setPendingFiles([]);
@@ -99,8 +106,12 @@ const DocumentsView = () => {
     const handleDelete = (doc) => {
         const updated = documents.filter((d) => d.id !== doc.id);
         setDocuments(updated);
+        storage.set(DOCS_NS, 'items', updated);
         if (selectedId === doc.id) {
-            setSelectedId(updated[0]?.id || null);
+            const nextId = updated[0]?.id || null;
+            setSelectedId(nextId);
+            if (nextId) storage.set(DOCS_NS, 'selectedId', nextId);
+            else storage.remove(DOCS_NS, 'selectedId');
         }
     };
 
@@ -113,8 +124,7 @@ const DocumentsView = () => {
         if (!docToDelete) return;
         setDocuments((prev) => {
             const next = prev.filter((d) => d.id !== docToDelete.id);
-            // keep your existing storage key here (replace 'documents' if different)
-            localStorage.setItem('documents', JSON.stringify(next));
+            storage.set(DOCS_NS, 'items', next);
             return next;
         });
         // if you keep a selected doc id, clear it if it was deleted
@@ -163,7 +173,8 @@ const DocumentsView = () => {
                                 selectedId={selectedId}
                                 onSelect={(id) => {
                                     setSelectedId(id);
-                                    if (window.innerWidth < 1024) setIsSidebarOpen(false); // auto-close on mobile
+                                    storage.set(DOCS_NS, 'selectedId', id);
+                                    if (window.innerWidth < 1024) setIsSidebarOpen(false);
                                 }}
                                 onDelete={handleDelete}
                             />

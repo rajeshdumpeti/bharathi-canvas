@@ -4,7 +4,7 @@ import { storage, HUB_NS } from '../../packages/storage';
 export const ProjectHubContext = createContext(undefined);
 export const useProjectHubContext = () => useContext(ProjectHubContext);
 
-const LIST_KEY = 'projects';
+const LIST_KEY = 'hub:projects';
 const SELECTED_KEY = 'selectedProjectId';
 
 function loadProjects() {

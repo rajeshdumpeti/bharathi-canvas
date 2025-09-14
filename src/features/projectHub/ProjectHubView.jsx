@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HubSidebar from './components/HubSidebar';
 import { ProjectHubProvider } from './context';
 import SectionHeader from './components/SectionHeader';
@@ -24,6 +24,7 @@ import Releases from './sections/Releases';
 // Local hook usage must be inside the provider; we import here:
 import useProjectHub from '../../hooks/useProjectHub';
 import Modal from '../../components/ui/Modal';
+import { storage, HUB_NS } from '../../packages/storage';
 
 const SECTIONS = [
     { key: 'setup', title: 'Setup', comp: Setup },
@@ -56,13 +57,21 @@ export default function ProjectHubView() {
 
 function ProjectHubInner() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [activeKey, setActiveKey] = useState(SECTIONS[0].key);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState(null);
+    const [activeKey, setActiveKey] = useState(() => {
+        const saved = storage.get(HUB_NS, 'activeSection', SECTIONS[0].key);
+        return SECTIONS.some(s => s.key === saved) ? saved : SECTIONS[0].key;
+    });
     const ActiveComp = SECTIONS.find((s) => s.key === activeKey)?.comp ?? Setup;
 
     // Delete modal state
     const { deleteProject, selected } = useProjectHub();
-    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [projectToDelete, setProjectToDelete] = useState(null);
+
+
+    useEffect(() => {
+        storage.set(HUB_NS, 'activeSection', activeKey);
+    }, [activeKey]);
 
     const openDelete = (proj) => {
         setProjectToDelete(proj);
@@ -107,6 +116,7 @@ function ProjectHubInner() {
                                 activeKey={activeKey}
                                 onSelect={(key) => {
                                     setActiveKey(key);
+                                    storage.set(HUB_NS, 'activeSection', key);
                                     setIsSidebarOpen(false);
                                 }}
                                 onConfirmDelete={openDelete}
