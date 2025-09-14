@@ -1,50 +1,17 @@
-import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
-
-export const useProjectHubContext = () => useContext(ProjectHubContext)
-
-// export default useProjectHub;
-const HUB_STORAGE_KEY = 'hub:projects';     // Project Hub’s own list
-const BOARD_STORAGE_KEY = 'projects';         // Board’s list (for one-time migration)
-const SELECTED_KEY = 'hub:selectedProjectId';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { storage, HUB_NS } from '../../packages/storage';
 
 export const ProjectHubContext = createContext(undefined);
+export const useProjectHubContext = () => useContext(ProjectHubContext);
 
-function persistProjects(list) {
-    localStorage.setItem(HUB_STORAGE_KEY, JSON.stringify(list));
-}
+const LIST_KEY = 'projects';
+const SELECTED_KEY = 'selectedProjectId';
 
 function loadProjects() {
-    try {
-        // Prefer hub list
-        const hubRaw = localStorage.getItem(HUB_STORAGE_KEY);
-        if (hubRaw) {
-            const list = JSON.parse(hubRaw);
-            return Array.isArray(list) ? list : [];
-        }
-
-        // One-time migration from Board's "projects"
-        const boardRaw = localStorage.getItem(BOARD_STORAGE_KEY);
-        const boardList = boardRaw ? JSON.parse(boardRaw) : [];
-        const migrated = Array.isArray(boardList)
-            ? boardList.map(p => ({
-                id: p.id,
-                name: p.name,
-                // keep any hub data if it existed, otherwise empty
-                sections: p.sections || {},
-            }))
-            : [];
-
-        persistProjects(migrated);
-        return migrated;
-    } catch {
-        return [];
-    }
+    return storage.get(HUB_NS, LIST_KEY, []);
+}
+function persistProjects(list) {
+    storage.set(HUB_NS, LIST_KEY, list);
 }
 
 export function ProjectHubProvider({ children }) {
@@ -53,16 +20,14 @@ export function ProjectHubProvider({ children }) {
 
     const refresh = () => setProjects(loadProjects());
 
-    // initial load + restore last hub selection
     useEffect(() => {
         refresh();
-        setSelectedId(localStorage.getItem(SELECTED_KEY));
+        setSelectedId(storage.get(HUB_NS, SELECTED_KEY, null));
     }, []);
 
-    // keep hub selection persisted
     useEffect(() => {
-        if (selectedId) localStorage.setItem(SELECTED_KEY, selectedId);
-        else localStorage.removeItem(SELECTED_KEY);
+        if (selectedId) storage.set(HUB_NS, SELECTED_KEY, selectedId);
+        else storage.remove(HUB_NS, SELECTED_KEY);
     }, [selectedId]);
 
     const selected = useMemo(
@@ -73,17 +38,15 @@ export function ProjectHubProvider({ children }) {
     const selectProject = (id) => setSelectedId(id);
 
     const addProject = (name) => {
-        const projectName = (name || '').trim();
-        if (!projectName) return null;
-
-        const id = `${projectName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
-
+        const n = (name || '').trim();
+        if (!n) return null;
+        const id = `${n.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
         const proj = {
             id,
-            name: projectName,
-            sections: {}, // Hub keeps its own section data only
+            name: n,
+            sections: {}, // Hub-only data
+            // NOTE: no Board columns here; Hub is independent
         };
-
         const next = [...projects, proj];
         setProjects(next);
         persistProjects(next);
@@ -91,46 +54,40 @@ export function ProjectHubProvider({ children }) {
         return proj;
     };
 
-
+    // Hub-only delete (does NOT touch Board data)
     const deleteProject = (id) => {
-        const next = projects.filter(p => p.id !== id);
+        const next = projects.filter((p) => p.id !== id);
         setProjects(next);
         persistProjects(next);
-
-        if (selectedId === id) {
-            const fallback = next[0]?.id || null;
-            setSelectedId(fallback);
-            if (fallback) localStorage.setItem(SELECTED_KEY, fallback);
-            else localStorage.removeItem(SELECTED_KEY);
-        }
+        if (selectedId === id) setSelectedId(null);
     };
-
 
     const updateSection = (sectionKey, data) => {
         if (!selectedId) return;
         const next = projects.map((p) =>
-            p.id !== selectedId
-                ? p
-                : { ...p, sections: { ...(p.sections || {}), [sectionKey]: data } }
+            p.id !== selectedId ? p : { ...p, sections: { ...(p.sections || {}), [sectionKey]: data } }
         );
         setProjects(next);
         persistProjects(next);
     };
+
     const value = {
         projects,
         selected,
         selectedId,
-        setSelectedId: (id) => selectProject(id),
+        setSelectedId,   // used by your sidebar; safe to expose
         selectProject,
         addProject,
+        deleteProject,
         updateSection,
-        deleteProject,     // hub-only delete
         refresh,
     };
 
-    return (
-        <ProjectHubContext.Provider value={value}>
-            {children}
-        </ProjectHubContext.Provider>
-    );
+    return <ProjectHubContext.Provider value={value}>{children}</ProjectHubContext.Provider>;
+}
+
+export default function useProjectHub() {
+    const ctx = useProjectHubContext();
+    if (!ctx) throw new Error('useProjectHub must be used within ProjectHubProvider');
+    return ctx;
 }

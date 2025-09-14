@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Header from '../../layout/Header';
 import HubSidebar from './components/HubSidebar';
 import { ProjectHubProvider } from './context';
 import SectionHeader from './components/SectionHeader';
@@ -81,18 +80,6 @@ function ProjectHubInner() {
     return (
         <div className="h-screen w-full flex flex-col bg-gray-50">
             {/* Fixed header */}
-            <div className="w-full bg-gray-900">
-                <Header
-                    onToggleSidebar={() => setIsSidebarOpen((s) => !s)}
-                    showHamburger={true}
-                    showTitle={true}
-                    rightSlot={
-                        <a href="#/" className="text-sm text-white/80 hover:text-white">
-                            Home
-                        </a>
-                    }
-                />
-            </div>
 
             {/* Main scroll area */}
             <div className="flex-1 min-h-0 w-full">
@@ -160,11 +147,6 @@ function ProjectHubInner() {
 
                 </div>
             </div>
-
-            {/* Fixed footer */}
-            <footer className="h-10 flex items-center justify-center text-xs text-gray-500 bg-white border-t">
-                © {new Date().getFullYear()} Bharathi’s Canvas
-            </footer>
 
             {/* Delete Project Modal */}
             <Modal

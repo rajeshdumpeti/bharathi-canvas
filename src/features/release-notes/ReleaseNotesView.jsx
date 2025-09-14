@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
 import useLocalStorage from '../../hooks/useLocalStorage';
 
@@ -7,7 +6,7 @@ import FiltersPanel from './components/FiltersPanel';
 import PreviewPanel from './components/PreviewPanel';
 import { tasksToMarkdown, classifyTask, suggestNextVersion } from '../../utils/releaseNotes';
 
-const LS_PROJECTS = 'projects';
+const LS_PROJECTS = 'board:projects';
 const LS_TASKS = 'tasks';
 const LS_RELEASES = 'releases';
 const LS_SELECTED_PROJECT = 'selectedProjectId';
@@ -154,10 +153,6 @@ const ReleaseNotesView = () => {
 
     return (
         <div className="h-screen w-full flex flex-col bg-gray-50">
-            <div className="w-full bg-gray-900">
-                <Header showHamburger onToggleSidebar={() => setIsSidebarOpen((s) => !s)} showTitle />
-            </div>
-
             <div className="flex-1 min-h-0 w-full">
                 <div className="relative h-full w-full flex overflow-hidden">
                     <div

@@ -1,17 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Header from '../../layout/Header';
-import Footer from '../../layout/Footer';
-
-import Modal from '../../components/ui/Modal';
+import { Modal } from '../../packages/ui';
 import TaskForm from './components/TaskForm';
 import AddColumnModal from './components/AddColumnModal';
 import Column from './components/Column';
 import Sidebar from './components/Sidebar';
+import { storage, BOARD_NS } from '../../packages/storage';
 
 // Keys used in localStorage
-const LS_PROJECTS = 'projects';
-const LS_TASKS = 'tasks';
-const LS_SELECTED_PROJECT = 'selectedProjectId';
+// const LS_PROJECTS = 'board:projects';
+// const LS_TASKS = 'tasks';
+// const LS_SELECTED_PROJECT = 'board:selectedProjectId';
 
 const DEFAULT_COLS = [
   { id: 'to-do', title: 'To Do' },
@@ -55,12 +53,13 @@ const BoardView = () => {
   };
 
   // initial load
+  // initial load
   useEffect(() => {
     setIsLoading(true);
     try {
-      const savedProjects = JSON.parse(localStorage.getItem(LS_PROJECTS) || '[]');
-      const savedTasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]');
-      const storedSelectedId = localStorage.getItem(LS_SELECTED_PROJECT);
+      const savedProjects = storage.get(BOARD_NS, 'projects', []);
+      const savedTasks = storage.get(BOARD_NS, 'tasks', []);
+      const storedSelectedId = storage.get(BOARD_NS, 'selectedProjectId', null);
 
       setProjects(savedProjects);
       setTasks(savedTasks);
@@ -74,7 +73,7 @@ const BoardView = () => {
         setColumns([]);
       }
     } catch (e) {
-      console.error('Error loading from localStorage:', e);
+      console.error('Error loading board data:', e);
     } finally {
       setIsLoading(false);
     }
@@ -90,17 +89,20 @@ const BoardView = () => {
     };
     const updated = [...projects, newProject];
     setProjects(updated);
-    localStorage.setItem(LS_PROJECTS, JSON.stringify(updated));
+    storage.set(BOARD_NS, 'projects', updated);
 
     setSelectedProject(newProject);
     setColumns([...DEFAULT_COLS]);
-    localStorage.setItem(LS_SELECTED_PROJECT, newProject.id);
+    storage.set(BOARD_NS, 'selectedProjectId', newProject.id);
   };
 
   const handleSelectProject = (project) => {
     setSelectedProject(project);
     setColumns(project?.columns ?? DEFAULT_COLS);
-    localStorage.setItem(LS_SELECTED_PROJECT, project?.id || '');
+    project?.id
+      ? storage.set(BOARD_NS, 'selectedProjectId', project.id)
+      : storage.remove(BOARD_NS, 'selectedProjectId');
+
   };
 
   const confirmDeleteProject = (project) => {
@@ -114,18 +116,20 @@ const BoardView = () => {
 
     setProjects(updatedProjects);
     setTasks(updatedTasks);
-    localStorage.setItem(LS_PROJECTS, JSON.stringify(updatedProjects));
-    localStorage.setItem(LS_TASKS, JSON.stringify(updatedTasks));
+    storage.set(BOARD_NS, 'projects', updatedProjects);
+    storage.set(BOARD_NS, 'tasks', updatedTasks);
+
+
 
     const nextSelected = updatedProjects[0] || null;
     setSelectedProject(nextSelected);
     setColumns(nextSelected?.columns || DEFAULT_COLS);
-
     if (nextSelected) {
-      localStorage.setItem(LS_SELECTED_PROJECT, nextSelected.id);
+      storage.set(BOARD_NS, 'selectedProjectId', nextSelected.id);
     } else {
-      localStorage.removeItem(LS_SELECTED_PROJECT);
+      storage.remove(BOARD_NS, 'selectedProjectId');
     }
+
 
     setIsProjectDeleteModalOpen(false);
     setProjectToDelete(null);
@@ -152,7 +156,8 @@ const BoardView = () => {
     });
 
     setTasks(updated);
-    localStorage.setItem(LS_TASKS, JSON.stringify(updated));
+    storage.set(BOARD_NS, 'tasks', updated);
+
   };
 
   const handleAddTask = (columnId) => {
@@ -176,7 +181,7 @@ const BoardView = () => {
   const handleDeleteTask = () => {
     const updated = tasks.filter((t) => t.id !== taskToDeleteId);
     setTasks(updated);
-    localStorage.setItem(LS_TASKS, JSON.stringify(updated));
+    storage.set(BOARD_NS, 'tasks', updated);
     setIsDeleteTaskModalOpen(false);
     setTaskToDeleteId(null);
   };
@@ -194,7 +199,7 @@ const BoardView = () => {
       updated = [...tasks, { ...dataToSave, id: Date.now().toString() }];
     }
     setTasks(updated);
-    localStorage.setItem(LS_TASKS, JSON.stringify(updated));
+    storage.set(BOARD_NS, 'tasks', updated);
     setIsTaskModalOpen(false);
     setEditingTask(null);
   };
@@ -215,8 +220,8 @@ const BoardView = () => {
     );
     setProjects(updatedProjects);
 
-    localStorage.setItem(LS_PROJECTS, JSON.stringify(updatedProjects));
-    localStorage.setItem(LS_TASKS, JSON.stringify(updatedTasks));
+    storage.set(BOARD_NS, 'projects', updatedProjects);
+    storage.set(BOARD_NS, 'tasks', updatedTasks);
 
     setIsDeleteColumnModalOpen(false);
     setColumnToDeleteId(null);
@@ -234,8 +239,7 @@ const BoardView = () => {
       p.id === selectedProject.id ? { ...p, columns: newColumns } : p
     );
     setProjects(updatedProjects);
-    localStorage.setItem(LS_PROJECTS, JSON.stringify(updatedProjects));
-
+    storage.set(BOARD_NS, 'projects', updatedProjects);
     setSelectedProject((prev) =>
       prev && prev.id === selectedProject.id ? { ...prev, columns: newColumns } : prev
     );
@@ -246,13 +250,6 @@ const BoardView = () => {
   return (
     <div className="h-screen w-full flex flex-col bg-gray-50 font-sans text-gray-800">
       {/* Header */}
-      <div className="w-full bg-gray-900">
-        <Header
-          onToggleSidebar={() => setIsSidebarOpen((s) => !s)}
-          showHamburger={true}
-          showTitle={true}
-        />
-      </div>
 
       {/* Middle row: sidebar + content */}
       <div className="flex-1 min-h-0 w-full">
@@ -413,9 +410,6 @@ const BoardView = () => {
           </main>
         </div>
       </div>
-
-      {/* Footer */}
-      <Footer />
 
       {/* Modals */}
       <Modal

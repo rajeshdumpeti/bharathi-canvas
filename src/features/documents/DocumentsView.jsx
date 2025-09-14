@@ -1,6 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import Header from '../../layout/Header';
-import Footer from '../../layout/Footer';
 import useLocalStorage from '../../hooks/useLocalStorage';
 
 import UploadCard from './components/UploadCard';
@@ -129,11 +127,6 @@ const DocumentsView = () => {
 
     return (
         <div className="h-screen w-full flex flex-col bg-gray-50">
-            {/* Header */}
-            <div className="w-full bg-gray-900">
-                <Header showHamburger onToggleSidebar={() => setIsSidebarOpen((s) => !s)} showTitle />
-            </div>
-
             {/* Shell: left nav + right content */}
             <div className="flex-1 min-h-0 w-full">
                 <div className="relative h-full w-full flex overflow-hidden">
@@ -220,11 +213,7 @@ const DocumentsView = () => {
 
                     </main>
                 </div>
-
             </div>
-
-            {/* Footer */}
-            <Footer />
         </div>
     );
 };

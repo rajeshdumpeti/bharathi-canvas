@@ -1,17 +1,13 @@
 import React from "react";
-import Header from "../../layout/Header";
-import { Link } from "react-router-dom";
 
-const LandingPage = ({ onStart, onStartDocs }) => {
+export default function LandingPage({
+    onStart,
+    onStartDocs,
+    onOpenReleaseNotes,
+    onOpenProjectHub
+}) {
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-            <div className="w-full bg-gray-900">
-                <Header
-                    onToggleSidebar={() => { }}
-                    showHamburger={false}
-                    showTitle={true}
-                />
-            </div>
+        <div className="bg-gray-50 flex flex-col items-center justify-center">
             <div className="flex flex-1 flex-col p-4 text-center">
                 <h1 className="text-5xl font-bold text-gray-900 mb-4 animate-fade-in-down">
                     Namaste!
@@ -28,8 +24,9 @@ const LandingPage = ({ onStart, onStartDocs }) => {
                             Create a Project Board for your personal use.
                         </p>
                         <button
-                            onClick={onStart}
-                            className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); onStart && onStart(); }}
+                            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
                         >
                             Get Started
                         </button>
@@ -44,8 +41,9 @@ const LandingPage = ({ onStart, onStartDocs }) => {
                             Upload, organize and preview PDFs, DOCX, and TXT files.
                         </p>
                         <button
-                            onClick={onStartDocs}
-                            className="w-full px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition-colors"
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); onStartDocs && onStartDocs(); }}
+                            className="w-full rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3"
                         >
                             Open Documents
                         </button>
@@ -57,22 +55,24 @@ const LandingPage = ({ onStart, onStartDocs }) => {
                         <p className="text-sm text-gray-500 mb-6">
                             Turn your Done tasks into clean, categorized release notes.
                         </p>
-                        <Link
-                            to="/release-notes"
-                            className="block w-full text-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors"
+                        <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); onOpenReleaseNotes && onOpenReleaseNotes(); }}
+                            className="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
                         >
                             Open Release Notes
-                        </Link>
+                        </button>
                     </div>
                     <div className="p-8 bg-white rounded-xl shadow-xl transform hover:scale-[1.01] transition-transform duration-300">
                         <h2 className="text-2xl font-semibold mb-4">Project Hub</h2>
                         <p className="text-sm text-gray-500 mb-6">Specs, architecture, APIs, links & more—organized per project.</p>
-                        <Link
-                            to="/project-hub"
-                            className="block w-full text-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors"
+                        <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); onOpenProjectHub && onOpenProjectHub(); }}
+                            className="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
                         >
                             Open Project Hub
-                        </Link>
+                        </button>
 
                     </div>
                 </div>
@@ -81,4 +81,3 @@ const LandingPage = ({ onStart, onStartDocs }) => {
     );
 };
 
-export default LandingPage;

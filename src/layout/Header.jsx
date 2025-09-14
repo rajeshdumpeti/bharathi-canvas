@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 
 
-const Header = ({ onToggleSidebar, showHamburger, showTitle, userInitials = "BC", }) => {
+const Header = ({ onToggleSidebar, showHamburger, showTitle, open }) => {
     return (
         <header className="text-white p-4 flex items-center justify-between shadow-xl border-b border-gray-800">
             <div className="flex items-center space-x-4">
@@ -42,7 +42,13 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle, userInitials = "BC"
                     </Link>
                 )}
             </div>
-
+            <button
+                onClick={open}
+                className="px-3 py-1.5 rounded-md text-sm text-white/90 hover:text-white"
+                title="Search (⌘K)"
+            >
+                Search (⌘K)
+            </button>
             <div className="flex items-center gap-6">
                 <Link
                     to="/"

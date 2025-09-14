@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import useProjectHub from '../../../hooks/useProjectHub';
 
 export default function HubSidebar({ sections, activeKey, onSelect, onConfirmDelete }) {
-    const { projects, selected, selectedId, setSelectedId, addProject } = useProjectHub();
+    const { projects, selected, setSelectedId, addProject } = useProjectHub();
     const [newName, setNewName] = useState('');
 
     return (
