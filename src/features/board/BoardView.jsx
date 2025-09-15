@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Modal } from '../../packages/ui';
-import TaskForm from './components/TaskForm';
-import AddColumnModal from './components/AddColumnModal';
-import Column from './components/Column';
-import Sidebar from './components/Sidebar';
-import { storage, BOARD_NS } from '../../packages/storage';
+import React, { useEffect, useRef, useState } from "react";
+import { Modal } from "../../packages/ui";
+import TaskForm from "./components/TaskForm";
+import AddColumnModal from "./components/AddColumnModal";
+import Column from "./components/Column";
+import Sidebar from "./components/Sidebar";
+import { storage, BOARD_NS } from "../../packages/storage";
+import { Link } from "react-router-dom";
 
 // Keys used in localStorage
 // const LS_PROJECTS = 'board:projects';
@@ -12,10 +13,10 @@ import { storage, BOARD_NS } from '../../packages/storage';
 // const LS_SELECTED_PROJECT = 'board:selectedProjectId';
 
 const DEFAULT_COLS = [
-  { id: 'to-do', title: 'To Do' },
-  { id: 'in-progress', title: 'In Progress' },
-  { id: 'validation', title: 'Validation' },
-  { id: 'done', title: 'Done' },
+  { id: "to-do", title: "To Do" },
+  { id: "in-progress", title: "In Progress" },
+  { id: "validation", title: "Validation" },
+  { id: "done", title: "Done" },
 ];
 
 const BoardView = () => {
@@ -33,7 +34,8 @@ const BoardView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [columnToDeleteId, setColumnToDeleteId] = useState(null);
   const [isDeleteColumnModalOpen, setIsDeleteColumnModalOpen] = useState(false);
-  const [isProjectDeleteModalOpen, setIsProjectDeleteModalOpen] = useState(false);
+  const [isProjectDeleteModalOpen, setIsProjectDeleteModalOpen] =
+    useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
 
   const columnsRef = useRef(null);
@@ -42,14 +44,14 @@ const BoardView = () => {
   // helpers for the tabs/rail
   const scrollColumnsBy = (delta) => {
     if (!columnsRef.current) return;
-    columnsRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    columnsRef.current.scrollBy({ left: delta, behavior: "smooth" });
   };
   const scrollToColumn = (colId) => {
     const el = columnRefs.current[colId];
     if (!el || !columnsRef.current) return;
     const parent = columnsRef.current;
     const left = el.offsetLeft - 16;
-    parent.scrollTo({ left, behavior: 'smooth' });
+    parent.scrollTo({ left, behavior: "smooth" });
   };
 
   // initial load
@@ -57,15 +59,27 @@ const BoardView = () => {
   useEffect(() => {
     setIsLoading(true);
     try {
-      const savedProjects = storage.get(BOARD_NS, 'projects', []);
-      const savedTasks = storage.get(BOARD_NS, 'tasks', []);
-      const storedSelectedId = storage.get(BOARD_NS, 'selectedProjectId', null);
+      const savedProjects = storage.get(BOARD_NS, "projects", []);
+      const savedTasks = storage.get(BOARD_NS, "tasks", []);
+      const storedSelectedId = storage.get(BOARD_NS, "selectedProjectId", null);
 
+      const fixedTasks = (savedTasks || []).map(t => {
+        const validStatuses = new Set(["to-do", "in-progress", "validation", "done"]);
+        const status =
+          typeof t.status === "string" && validStatuses.has(t.status)
+            ? t.status
+            : "to-do";
+        return { ...t, status };
+      });
+      setTasks(fixedTasks);
+      if (JSON.stringify(fixedTasks) !== JSON.stringify(savedTasks)) {
+        storage.set(BOARD_NS, "tasks", fixedTasks);
+      }
       setProjects(savedProjects);
-      setTasks(savedTasks);
 
       if (savedProjects.length) {
-        const selected = savedProjects.find(p => p.id === storedSelectedId) || null;
+        const selected =
+          savedProjects.find((p) => p.id === storedSelectedId) || null;
         setSelectedProject(selected);
         setColumns(selected?.columns || []);
       } else {
@@ -73,7 +87,7 @@ const BoardView = () => {
         setColumns([]);
       }
     } catch (e) {
-      console.error('Error loading board data:', e);
+      console.error("Error loading board data:", e);
     } finally {
       setIsLoading(false);
     }
@@ -83,26 +97,25 @@ const BoardView = () => {
   const handleAddProject = (projectName) => {
     if (!projectName) return;
     const newProject = {
-      id: `${projectName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+      id: `${projectName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
       name: projectName,
       columns: [...DEFAULT_COLS],
     };
     const updated = [...projects, newProject];
     setProjects(updated);
-    storage.set(BOARD_NS, 'projects', updated);
+    storage.set(BOARD_NS, "projects", updated);
 
     setSelectedProject(newProject);
     setColumns([...DEFAULT_COLS]);
-    storage.set(BOARD_NS, 'selectedProjectId', newProject.id);
+    storage.set(BOARD_NS, "selectedProjectId", newProject.id);
   };
 
   const handleSelectProject = (project) => {
     setSelectedProject(project);
     setColumns(project?.columns ?? DEFAULT_COLS);
     project?.id
-      ? storage.set(BOARD_NS, 'selectedProjectId', project.id)
-      : storage.remove(BOARD_NS, 'selectedProjectId');
-
+      ? storage.set(BOARD_NS, "selectedProjectId", project.id)
+      : storage.remove(BOARD_NS, "selectedProjectId");
   };
 
   const confirmDeleteProject = (project) => {
@@ -116,37 +129,35 @@ const BoardView = () => {
 
     setProjects(updatedProjects);
     setTasks(updatedTasks);
-    storage.set(BOARD_NS, 'projects', updatedProjects);
-    storage.set(BOARD_NS, 'tasks', updatedTasks);
-
-
+    storage.set(BOARD_NS, "projects", updatedProjects);
+    storage.set(BOARD_NS, "tasks", updatedTasks);
 
     const nextSelected = updatedProjects[0] || null;
     setSelectedProject(nextSelected);
     setColumns(nextSelected?.columns || DEFAULT_COLS);
     if (nextSelected) {
-      storage.set(BOARD_NS, 'selectedProjectId', nextSelected.id);
+      storage.set(BOARD_NS, "selectedProjectId", nextSelected.id);
     } else {
-      storage.remove(BOARD_NS, 'selectedProjectId');
+      storage.remove(BOARD_NS, "selectedProjectId");
     }
-
 
     setIsProjectDeleteModalOpen(false);
     setProjectToDelete(null);
   };
 
   // tasks drag/drop + edit
-  const handleDragStart = (e, taskId) => e.dataTransfer.setData('taskId', taskId);
+  const handleDragStart = (e, taskId) =>
+    e.dataTransfer.setData("taskId", taskId);
   const handleDragOver = (e) => e.preventDefault();
   const handleDrop = (e, newColumnId) => {
     e.preventDefault();
-    const taskId = e.dataTransfer.getData('taskId');
+    const taskId = e.dataTransfer.getData("taskId");
     const nowISO = new Date().toISOString();
 
     const updated = tasks.map((t) => {
       if (t.id !== taskId) return t;
-      const wasDone = t.status === 'done';
-      const willBeDone = newColumnId === 'done';
+      const wasDone = t.status === "done";
+      const willBeDone = newColumnId === "done";
       return {
         ...t,
         status: newColumnId,
@@ -156,56 +167,77 @@ const BoardView = () => {
     });
 
     setTasks(updated);
-    storage.set(BOARD_NS, 'tasks', updated);
-
+    storage.set(BOARD_NS, "tasks", updated);
   };
 
   const handleAddTask = (columnId) => {
     if (!selectedProject) return;
+    // If an event slipped in, fall back to 'to-do'
+    const isEventLike = columnId && (columnId.nativeEvent || columnId.target);
+    const status = isEventLike ? 'to-do' : (columnId || 'to-do');
     setEditingTask({
-      status: columnId,
-      title: '',
-      description: '',
-      assignee: '',
-      priority: 'Low',
-      architecture: 'FE',
+      status,
+      title: "",
+      description: "",
+      assignee: "",
+      priority: "Low",
+      architecture: "FE",
       project: selectedProject.id,
+      acceptanceCriteria: "",
     });
     setIsTaskModalOpen(true);
   };
 
-  const handleEditTask = (task) => { setEditingTask(task); setIsTaskModalOpen(true); };
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setIsTaskModalOpen(true);
+  };
 
-  const confirmDeleteTask = (taskId) => { setTaskToDeleteId(taskId); setIsDeleteTaskModalOpen(true); };
+  const confirmDeleteTask = (taskId) => {
+    setTaskToDeleteId(taskId);
+    setIsDeleteTaskModalOpen(true);
+  };
 
   const handleDeleteTask = () => {
     const updated = tasks.filter((t) => t.id !== taskToDeleteId);
     setTasks(updated);
-    storage.set(BOARD_NS, 'tasks', updated);
+    storage.set(BOARD_NS, "tasks", updated);
     setIsDeleteTaskModalOpen(false);
     setTaskToDeleteId(null);
   };
 
   const handleSaveTask = (taskData) => {
+    const isNew = !taskData.id;
     const dataToSave = {
       ...taskData,
       id: taskData.id || `task-${Date.now()}`,
       project: selectedProject?.id,
+      storyId:
+        taskData.storyId ||
+        (isNew && selectedProject
+          ? nextStoryId(selectedProject.id)
+          : taskData.storyId),
+      acceptanceCriteria: taskData.acceptanceCriteria || "",
     };
     let updated;
     if (editingTask && editingTask.id) {
-      updated = tasks.map((t) => (t.id === editingTask.id ? { ...dataToSave, id: t.id } : t));
+      updated = tasks.map((t) =>
+        t.id === editingTask.id ? { ...dataToSave, id: t.id } : t
+      );
     } else {
       updated = [...tasks, { ...dataToSave, id: Date.now().toString() }];
     }
     setTasks(updated);
-    storage.set(BOARD_NS, 'tasks', updated);
+    storage.set(BOARD_NS, "tasks", updated);
     setIsTaskModalOpen(false);
     setEditingTask(null);
   };
 
   // columns
-  const confirmDeleteColumn = (columnId) => { setColumnToDeleteId(columnId); setIsDeleteColumnModalOpen(true); };
+  const confirmDeleteColumn = (columnId) => {
+    setColumnToDeleteId(columnId);
+    setIsDeleteColumnModalOpen(true);
+  };
 
   const handleDeleteColumn = () => {
     if (!selectedProject) return;
@@ -220,8 +252,8 @@ const BoardView = () => {
     );
     setProjects(updatedProjects);
 
-    storage.set(BOARD_NS, 'projects', updatedProjects);
-    storage.set(BOARD_NS, 'tasks', updatedTasks);
+    storage.set(BOARD_NS, "projects", updatedProjects);
+    storage.set(BOARD_NS, "tasks", updatedTasks);
 
     setIsDeleteColumnModalOpen(false);
     setColumnToDeleteId(null);
@@ -231,7 +263,7 @@ const BoardView = () => {
     if (!newTitle || !selectedProject) return;
     const newColumns = [
       ...columns,
-      { id: newTitle.toLowerCase().replace(/\s+/g, '-'), title: newTitle },
+      { id: newTitle.toLowerCase().replace(/\s+/g, "-"), title: newTitle },
     ];
     setColumns(newColumns);
 
@@ -239,12 +271,24 @@ const BoardView = () => {
       p.id === selectedProject.id ? { ...p, columns: newColumns } : p
     );
     setProjects(updatedProjects);
-    storage.set(BOARD_NS, 'projects', updatedProjects);
+    storage.set(BOARD_NS, "projects", updatedProjects);
     setSelectedProject((prev) =>
-      prev && prev.id === selectedProject.id ? { ...prev, columns: newColumns } : prev
+      prev && prev.id === selectedProject.id
+        ? { ...prev, columns: newColumns }
+        : prev
     );
 
     setIsColumnModalOpen(false);
+  };
+
+  // Per-project Story ID sequence (starts at 234567)
+  const nextStoryId = (projectId) => {
+    const map = storage.get(BOARD_NS, "storySeq", {});
+    const current = Number(map[projectId] || 234567);
+    const id = `US${current}`;
+    map[projectId] = current + 1;
+    storage.set(BOARD_NS, "storySeq", map);
+    return id;
   };
 
   return (
@@ -256,7 +300,7 @@ const BoardView = () => {
         <div className="relative h-full w-full flex overflow-hidden">
           <div
             onClick={() => setIsSidebarOpen(false)}
-            className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
           />
           {/* Sidebar */}
@@ -266,7 +310,7 @@ const BoardView = () => {
               fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-900 text-white
               border-r border-gray-800 overflow-y-auto shrink-0
               transform transition-transform duration-300 ease-in-out
-              ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
               lg:translate-x-0 lg:transform-none
               `}
           >
@@ -290,22 +334,55 @@ const BoardView = () => {
               {/* Title bar */}
               <div className="bg-white border-b">
                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    {selectedProject ? selectedProject.name : 'Welcome'}
-                  </h1>
-                  <button
-                    onClick={() => selectedProject && setIsColumnModalOpen(true)}
-                    disabled={!selectedProject}
-                    className={`px-4 py-2 rounded-lg shadow-md font-semibold flex items-center
-                      ${selectedProject
-                        ? 'bg-green-500 text-white hover:bg-green-600'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add Column
-                  </button>
+                  <div className="flex gap-2">
+                    {" "}
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      {selectedProject ? selectedProject.name : "Welcome"}
+                    </h1>
+                    <button
+                      onClick={() => handleAddTask('to-do')}
+                      className="px-4 py-2 rounded-lg shadow-md font-semibold 
+                     bg-blue-500 text-white hover:bg-blue-600"
+                    >
+                      Create Story
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      to="/board/stories"
+                      className="px-4 py-2 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                      title="View all stories"
+                    >
+                      US LookUp
+                    </Link>
+                    <button
+                      onClick={() =>
+                        selectedProject && setIsColumnModalOpen(true)
+                      }
+                      disabled={!selectedProject}
+                      className={`px-4 py-2 rounded-lg shadow-md font-semibold flex items-center
+        ${selectedProject
+                          ? "bg-green-500 text-white hover:bg-green-600"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                      Add Column
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -318,10 +395,15 @@ const BoardView = () => {
                 <div className="flex-1 overflow-auto">
                   <div className="mx-auto max-w-3xl px-6 py-12">
                     <div className="rounded-xl border bg-white p-8 shadow-sm">
-                      <h2 className="text-2xl font-semibold mb-3">Create your first project</h2>
+                      <h2 className="text-2xl font-semibold mb-3">
+                        Create your first project
+                      </h2>
                       <p className="text-gray-600">
-                        Use the <span className="font-medium">“New project name”</span> field in the left sidebar to add a project.
-                        Once created, we’ll auto-add the columns <em>To Do</em>, <em>In Progress</em>, and <em>Done</em>.
+                        Use the{" "}
+                        <span className="font-medium">“New project name”</span>{" "}
+                        field in the left sidebar to add a project. Once
+                        created, we’ll auto-add the columns <em>To Do</em>,{" "}
+                        <em>In Progress</em>, and <em>Done</em>.
                       </p>
                       <ul className="mt-6 space-y-2 text-gray-700 list-disc pl-5">
                         <li>Your projects appear in the left panel.</li>
@@ -339,10 +421,19 @@ const BoardView = () => {
                       <button
                         aria-label="Scroll left"
                         onClick={() => scrollColumnsBy(-320)}
-                        className={`${columns.length > 1 ? 'flex' : 'hidden'} h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
+                        className={`${columns.length > 1 ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M12.293 15.707a1 1 0 010-1.414L8.414 10l3.879-4.293a1 1 0 10-1.586-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.586-1.414z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M12.293 15.707a1 1 0 010-1.414L8.414 10l3.879-4.293a1 1 0 10-1.586-1.414l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.586-1.414z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
 
@@ -363,10 +454,19 @@ const BoardView = () => {
                       <button
                         aria-label="Scroll right"
                         onClick={() => scrollColumnsBy(320)}
-                        className={`${columns.length > 1 ? 'flex' : 'hidden'} h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
+                        className={`${columns.length > 1 ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.707 4.293a1 1 0 010 1.414L11.586 10l-3.879 4.293a1 1 0 101.586 1.414l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.586 0z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M7.707 4.293a1 1 0 010 1.414L11.586 10l-3.879 4.293a1 1 0 101.586 1.414l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.586 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -389,7 +489,9 @@ const BoardView = () => {
                               id={column.id}
                               title={column.title}
                               tasks={tasks.filter(
-                                (t) => selectedProject && t.project === selectedProject.id
+                                (t) =>
+                                  selectedProject &&
+                                  t.project === selectedProject.id
                               )}
                               onAddTask={handleAddTask}
                               onDrop={handleDrop}
@@ -415,17 +517,17 @@ const BoardView = () => {
       <Modal
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
-        title={editingTask && editingTask.id ? 'Edit Task' : 'New Task'}
+        title={editingTask && editingTask.id ? "Edit Task" : "New Task"}
         className="bg-white rounded-xl shadow-lg p-6"
       >
         <TaskForm
           task={
             editingTask || {
-              title: '',
-              description: '',
-              assignee: '',
-              priority: 'Low',
-              architecture: 'FE',
+              title: "",
+              description: "",
+              assignee: "",
+              priority: "Low",
+              architecture: "FE",
               project: selectedProject?.id,
             }
           }
@@ -440,7 +542,10 @@ const BoardView = () => {
         title="Add Column"
         className="bg-white rounded-xl shadow-lg p-6"
       >
-        <AddColumnModal onSave={handleAddColumn} onCancel={() => setIsColumnModalOpen(false)} />
+        <AddColumnModal
+          onSave={handleAddColumn}
+          onCancel={() => setIsColumnModalOpen(false)}
+        />
       </Modal>
 
       <Modal
@@ -449,7 +554,9 @@ const BoardView = () => {
         title="Confirm Delete"
         className="bg-white rounded-xl shadow-lg p-6"
       >
-        <p className="text-gray-700">Are you sure you want to delete this task?</p>
+        <p className="text-gray-700">
+          Are you sure you want to delete this task?
+        </p>
         <div className="flex justify-between space-x-4 mt-6">
           <button
             onClick={() => setIsDeleteTaskModalOpen(false)}
@@ -473,7 +580,8 @@ const BoardView = () => {
         className="bg-white rounded-xl shadow-lg p-6"
       >
         <p className="text-gray-700">
-          Are you sure you want to delete this column and all its tasks? This action cannot be undone.
+          Are you sure you want to delete this column and all its tasks? This
+          action cannot be undone.
         </p>
         <div className="flex justify-between space-x-4 mt-6">
           <button
@@ -498,7 +606,8 @@ const BoardView = () => {
         className="bg-white rounded-xl shadow-lg p-6"
       >
         <p className="text-gray-700">
-          Are you sure you want to delete the project "{projectToDelete?.name}"? This will permanently delete all associated tasks.
+          Are you sure you want to delete the project "{projectToDelete?.name}"?
+          This will permanently delete all associated tasks.
         </p>
         <div className="flex justify-between space-x-4 mt-6">
           <button

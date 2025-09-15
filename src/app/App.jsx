@@ -1,18 +1,18 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import AppShell from './shell/AppShell';
+import AppShell from '../app/shell/AppShell';
 import SearchProvider from '../lib/search/SearchProvider';
-import { ProjectHubProvider } from '../features/projectHub/context';
+import StoriesView from '../features/board/StoriesView';
 
+// Lazy app entrypoints (one chunk per app)
+const BoardApp = lazy(() => import('../app/board/App'));
+const DocumentsApp = lazy(() => import('../app/documents/App'));
+const ReleaseNotesApp = lazy(() => import('../app/release-notes/App'));
+const ProjectHubApp = lazy(() => import('../app/project-hub/App'));
 const LandingPage = lazy(() => import('../features/landing/LandingPage'));
-const BoardView = lazy(() => import('../features/board/BoardView'));
-const DocumentsView = lazy(() => import('../features/documents/DocumentsView'));
-const ReleaseNotesView = lazy(() => import('../features/release-notes/ReleaseNotesView'));
-const ProjectHubView = lazy(() => import('../features/projectHub/ProjectHubView'));
 
-
-// Small wrapper so we can pass working navigation callbacks to LandingPage
-function LandingRoute() {
+// tiny wrapper to keep your LandingPage callbacks working
+function LandingWithNav() {
     const navigate = useNavigate();
     return (
         <LandingPage
@@ -26,23 +26,17 @@ function LandingRoute() {
 
 export default function App() {
     return (
-        <Suspense fallback={<div className="p-6 text-gray-600">Loading…</div>}>
+        <Suspense fallback={<div className="p-6">Loading…</div>}>
             <SearchProvider>
                 <Routes>
-                    {/* Layout wrapper */}
+                    {/* Shell layout (TopBar + Outlet + Footer) */}
                     <Route element={<AppShell />}>
-                        <Route path="/" element={<LandingRoute />} />
-                        <Route path="/board" element={<BoardView />} />
-                        <Route path="/documents" element={<DocumentsView />} />
-                        <Route path="/release-notes" element={<ReleaseNotesView />} />
-                        <Route
-                            path="/project-hub"
-                            element={
-                                <ProjectHubProvider>
-                                    <ProjectHubView />
-                                </ProjectHubProvider>
-                            }
-                        />
+                        <Route index element={<LandingWithNav />} />
+                        <Route path="board" element={<BoardApp />} />
+                        <Route path="/board/stories" element={<StoriesView />} />
+                        <Route path="documents" element={<DocumentsApp />} />
+                        <Route path="release-notes" element={<ReleaseNotesApp />} />
+                        <Route path="project-hub" element={<ProjectHubApp />} />
                     </Route>
 
                     {/* safety net */}

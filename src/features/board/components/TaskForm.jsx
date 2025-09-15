@@ -5,11 +5,12 @@ const TaskForm = ({ task, onSave, onCancel }) => {
     const formattedDate = today.toLocaleDateString('en-GB');
 
     const [formData, setFormData] = useState({
-        title: task.title,
-        description: task.description,
-        assignee: task.assignee,
-        priority: task.priority,
-        architecture: task.architecture,
+        title: task.title || '',
+        description: task.description || '',
+        assignee: task.assignee || '',
+        priority: task.priority || 'Low',
+        architecture: task.architecture || 'FE',
+        acceptanceCriteria: task.acceptanceCriteria || task.story || '',
         createdAt: task.createdAt || new Date().toISOString().slice(0, 10), // YYYY-MM-DD
         dueDate: task.dueDate || '',
     });
@@ -21,13 +22,25 @@ const TaskForm = ({ task, onSave, onCancel }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave({ ...task, ...formData });
+        // Preserve any existing task.storyId if present; ID auto-assignment happens in BoardView next step
+        onSave({ ...task, ...formData, storyId: task.storyId });
     };
 
     return (
         <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-5">
-                {/* Row 1: Title + Architecture */}
+                {/* Header row: show Story ID if present */}
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">Task Details</h3>
+                    <div className="text-sm">
+                        <span className="mr-2 text-gray-500">User Story #:</span>
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                            {task.storyId ? task.storyId : 'Assigned on save'}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Row 1: Title + Technology */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-gray-700 text-sm font-semibold mb-2">Title</label>
@@ -58,7 +71,20 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                     </div>
                 </div>
 
-                {/* Row 2: Description (full width) */}
+                {/* NEW Row: User Story paragraph */}
+                <div>
+                    <label className="block text-gray-700 text-sm font-semibold mb-2">Acceptance Criteria</label>
+                    <textarea
+                        name="acceptanceCriteria"
+                        value={formData.acceptanceCriteria}
+                        onChange={handleChange}
+                        placeholder="Given [context], when [action], then [outcome]..."
+                        rows="4"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                </div>
+
+                {/* Row: Description (full width) */}
                 <div>
                     <label className="block text-gray-700 text-sm font-semibold mb-2">Description</label>
                     <textarea
@@ -68,10 +94,10 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                         placeholder="Detailed description..."
                         rows="3"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    ></textarea>
+                    />
                 </div>
 
-                {/* Row 3: Assignee + Priority */}
+                {/* Row: Assignee + Priority */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-gray-700 text-sm font-semibold mb-2">Assignee</label>
@@ -99,11 +125,13 @@ const TaskForm = ({ task, onSave, onCancel }) => {
                     </div>
                 </div>
 
-                {/* Row 4: Created on + Complete by */}
+                {/* Row: Created on + Complete by */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-gray-700 text-sm font-semibold mb-2">Created on</label>
-                        <p className="w-full px-4 py-2 border border-gray-300 rounded-lg   focus:ring-blue-500 transition-all">{formattedDate}</p>
+                        <p className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 transition-all">
+                            {formattedDate}
+                        </p>
                     </div>
                     <div>
                         <label className="block text-gray-700 text-sm font-semibold mb-2">Complete by</label>

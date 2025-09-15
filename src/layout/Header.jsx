@@ -42,13 +42,6 @@ const Header = ({ onToggleSidebar, showHamburger, showTitle, open }) => {
                     </Link>
                 )}
             </div>
-            <button
-                onClick={open}
-                className="px-3 py-1.5 rounded-md text-sm text-white/90 hover:text-white"
-                title="Search (⌘K)"
-            >
-                Search (⌘K)
-            </button>
             <div className="flex items-center gap-6">
                 <Link
                     to="/"
