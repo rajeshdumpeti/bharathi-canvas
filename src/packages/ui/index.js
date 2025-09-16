@@ -5,3 +5,5 @@ export { default as SecretText } from '../../components/ui/SecretText';
 export { default as SectionHeader } from '../../components/ui/SectionHeader';
 export { default as LogoWordmark } from '../../components/ui/LogoWordmark';
 export { default as LogoMonogram } from '../../components/ui/LogoMonogram';
+export { default as EmptyState } from '../../components/ui/EmptyState';
+export { default as ProfileAvatar } from '../../components/ui/ProfileAvatar'

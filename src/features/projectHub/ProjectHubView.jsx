@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import HubSidebar from './components/HubSidebar';
 import { ProjectHubProvider } from './context';
 import SectionHeader from './components/SectionHeader';
-
+import { EmptyState } from '../../packages/ui';
 // Sections
 import Setup from './sections/Setup';
 import Architecture from './sections/Architecture';
@@ -73,6 +73,12 @@ function ProjectHubInner() {
         storage.set(HUB_NS, 'activeSection', activeKey);
     }, [activeKey]);
 
+    useEffect(() => {
+        const handler = () => setIsSidebarOpen((s) => !s);
+        window.addEventListener('app:toggleSidebar', handler);
+        return () => window.removeEventListener('app:toggleSidebar', handler);
+    }, []);
+
     const openDelete = (proj) => {
         setProjectToDelete(proj);
         setIsDeleteOpen(true);
@@ -126,33 +132,33 @@ function ProjectHubInner() {
 
                     {/* Right pane */}
                     <main className="flex-1 min-w-0 h-full overflow-auto">
-                        <div className="mx-auto w-full max-w-6xl px-6 py-6">
-                            {!selected ? (
-                                <div className="max-w-2xl">
-                                    <div className="rounded-xl border bg-white p-8 shadow-sm">
-                                        <h2 className="text-2xl font-semibold mb-3">Create your first project</h2>
-                                        <p className="text-gray-600">
-                                            Use the <span className="font-medium">“New project name”</span> field in the left sidebar to add a project.
-                                            Once created, you can document sections like <em>Setup</em>, <em>Architecture</em>, and more.
-                                        </p>
-                                        <ul className="mt-6 space-y-2 text-gray-700 list-disc pl-5">
-                                            <li>Your projects list is shared with your board.</li>
-                                            <li>Select a section on the left to start documenting.</li>
-                                            <li>Deleting here only clears <em>Project Hub</em> data for that project.</li>
-                                        </ul>
-                                    </div>
+                        {!selected ? (
+                            <EmptyState
+                                title="Create your first project"
+                                description={
+                                    <>
+                                        Use the <span className="font-medium">“New project name”</span> field in the left sidebar to add a project.
+                                        Once created, you can document sections like <em>Setup</em>, <em>Architecture</em>, and more.
+                                    </>
+                                }
+                                bullets={[
+                                    'Your projects list is shared with your board.',
+                                    'Select a section on the left to start documenting.',
+                                    <>Deleting here only clears <em>Project Hub</em> data for that project.</>,
+                                ]}
+                            />
+
+                        ) : (
+                            <>
+                                <SectionHeader
+                                    title={SECTIONS.find((s) => s.key === activeKey)?.title || 'Section'}
+                                />
+                                <div className="mt-4">
+                                    <ActiveComp />
                                 </div>
-                            ) : (
-                                <>
-                                    <SectionHeader
-                                        title={SECTIONS.find((s) => s.key === activeKey)?.title || 'Section'}
-                                    />
-                                    <div className="mt-4">
-                                        <ActiveComp />
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                            </>
+                        )}
+
                     </main>
 
                 </div>

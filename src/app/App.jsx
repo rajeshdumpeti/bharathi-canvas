@@ -1,8 +1,11 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AppShell from '../app/shell/AppShell';
+import AuthProvider from '../lib/auth/AuthProvider';
 import SearchProvider from '../lib/search/SearchProvider';
 import StoriesView from '../features/board/StoriesView';
+import SignIn from '../features/auth/SignIn';
+import Register from '../features/auth/Register'
 
 // Lazy app entrypoints (one chunk per app)
 const BoardApp = lazy(() => import('../app/board/App'));
@@ -27,22 +30,28 @@ function LandingWithNav() {
 export default function App() {
     return (
         <Suspense fallback={<div className="p-6">Loading…</div>}>
-            <SearchProvider>
-                <Routes>
-                    {/* Shell layout (TopBar + Outlet + Footer) */}
-                    <Route element={<AppShell />}>
-                        <Route index element={<LandingWithNav />} />
-                        <Route path="board" element={<BoardApp />} />
-                        <Route path="/board/stories" element={<StoriesView />} />
-                        <Route path="documents" element={<DocumentsApp />} />
-                        <Route path="release-notes" element={<ReleaseNotesApp />} />
-                        <Route path="project-hub" element={<ProjectHubApp />} />
-                    </Route>
+            <AuthProvider>
+                <SearchProvider>
+                    <Routes>
+                        {/* Shell layout (TopBar + Outlet + Footer) */}
+                        <Route element={<AppShell />}>
+                            <Route index element={<LandingWithNav />} />
+                            <Route path="signin" element={<SignIn />} />
+                            <Route path="register" element={<Register />} />
+                            <Route path="board" element={<BoardApp />} />
+                            <Route path="/board/stories" element={<StoriesView />} />
+                            <Route path="documents" element={<DocumentsApp />} />
+                            <Route path="release-notes" element={<ReleaseNotesApp />} />
+                            <Route path="project-hub" element={<ProjectHubApp />} />
+                            <Route path="y" element={<ProjectHubApp />} />
 
-                    {/* safety net */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </SearchProvider>
+                        </Route>
+
+                        {/* safety net */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </SearchProvider>
+            </AuthProvider>
         </Suspense>
     );
 }

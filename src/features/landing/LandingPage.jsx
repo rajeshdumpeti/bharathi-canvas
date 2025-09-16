@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../lib/auth/AuthProvider';
 
 export default function LandingPage({
     onStart,
@@ -6,6 +8,13 @@ export default function LandingPage({
     onOpenReleaseNotes,
     onOpenProjectHub
 }) {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const go = (path) => {
+        if (!user) navigate('/signin');
+        else navigate(path);
+    };
     return (
         <div className="bg-gray-50 flex flex-col items-center justify-center">
             <div className="flex flex-1 flex-col p-4 text-center">
@@ -25,7 +34,7 @@ export default function LandingPage({
                         </p>
                         <button
                             type="button"
-                            onClick={(e) => { e.preventDefault(); onStart && onStart(); }}
+                            onClick={() => go('/board')}
                             className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
                         >
                             Get Started
@@ -42,7 +51,7 @@ export default function LandingPage({
                         </p>
                         <button
                             type="button"
-                            onClick={(e) => { e.preventDefault(); onStartDocs && onStartDocs(); }}
+                            onClick={() => go('/documents')}
                             className="w-full rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3"
                         >
                             Open Documents
@@ -57,7 +66,7 @@ export default function LandingPage({
                         </p>
                         <button
                             type="button"
-                            onClick={(e) => { e.preventDefault(); onOpenReleaseNotes && onOpenReleaseNotes(); }}
+                            onClick={() => go('/release-notes')}
                             className="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
                         >
                             Open Release Notes
@@ -68,7 +77,7 @@ export default function LandingPage({
                         <p className="text-sm text-gray-500 mb-6">Specs, architecture, APIs, links & more—organized per project.</p>
                         <button
                             type="button"
-                            onClick={(e) => { e.preventDefault(); onOpenProjectHub && onOpenProjectHub(); }}
+                            onClick={() => go('/project-hub')}
                             className="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
                         >
                             Open Project Hub

@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
 import CommandPalette from '../../components/ui/CommandPalette';
 import { useSearch } from '../../lib/search/SearchProvider';
+import { useAuth } from '../../lib/auth/AuthProvider';
+// import ProfileAvatar from '../../components/ui/ProfileAvatar';
 
 const KEYS = {
     BOARD: { PROJECTS: 'projects', TASKS: 'tasks', SELECTED: 'selectedProjectId' },
@@ -12,44 +14,28 @@ const KEYS = {
     HUB: { PROJECTS: 'hub:projects', SELECTED: 'hub:selectedProjectId', ACTIVE: 'hub:activeSection' },
 };
 
-function TopBar() {
-    const loc = useLocation();
-    const { open } = useSearch();
-
-    const simple = (href, label) => (
-        <Link
-            to={href}
-            className={`px-3 py-1.5 rounded-md text-sm ${loc.pathname.startsWith(href) ? 'bg-white/10 text-white' : 'text-white/80 hover:text-white'
-                }`}
-        >
-            {label}
-        </Link>
-    );
-
-    return (
-        <div className="w-full bg-gray-900">
-            <Header
-                showHamburger={false}
-                showTitle={true}
-                open={open}
-                rightSlot={
-                    <nav className="flex items-center gap-2">
-
-                        {simple('/', 'Home')}
-                        {simple('/board', 'Board')}
-                        {simple('/documents', 'Documents')}
-                        {simple('/release-notes', 'Release Notes')}
-                        {simple('/project-hub', 'Project Hub')}
-                    </nav>
-                }
-            />
-        </div>
-    );
-}
+const NAV_LINKS = [
+    { to: '/', label: 'Home' },
+    { to: '/board', label: 'Board' },
+    { to: '/documents', label: 'Documents' },
+    { to: '/release-notes', label: 'Release Notes' },
+    { to: '/project-hub', label: 'Project Hub' },
+];
 
 export default function AppShell() {
     const navigate = useNavigate();
-    const { registerSource } = useSearch();
+    const { registerSource, open } = useSearch();
+    const { user, signOut } = useAuth();
+    const loc = useLocation();
+
+    const onLanding = loc.pathname === '/';
+    const showNav = !!user && !onLanding; // nav only after sign-in, and hide on landing
+
+    const wantsSidebar =
+        loc.pathname.startsWith('/board') ||
+        loc.pathname.startsWith('/documents') ||
+        loc.pathname.startsWith('/release-notes') ||
+        loc.pathname.startsWith('/project-hub');
 
     useEffect(() => {
         // Board source: projects + tasks
@@ -185,7 +171,18 @@ export default function AppShell() {
 
     return (
         <div className="h-screen w-full flex flex-col bg-gray-50">
-            <TopBar />
+            <div className="w-full">
+                <Header
+                    showHamburger={wantsSidebar}
+                    onToggleSidebar={() => window.dispatchEvent(new CustomEvent('app:toggleSidebar'))}
+                    showTitle={true}
+                    navLinks={showNav ? NAV_LINKS : []}
+                    user={user}
+                    onSignOut={signOut}
+                    onOpenSearch={open}
+                />
+            </div>
+
             <main className="flex-1 min-h-0 overflow-auto">
                 <Outlet />
             </main>

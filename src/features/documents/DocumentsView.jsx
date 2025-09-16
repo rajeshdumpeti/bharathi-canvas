@@ -28,6 +28,12 @@ const DocumentsView = () => {
         else storage.remove(DOCS_NS, 'selectedId');
     }, [selectedId]);
 
+    useEffect(() => {
+        const handler = () => setIsSidebarOpen((s) => !s);
+        window.addEventListener('app:toggleSidebar', handler);
+        return () => window.removeEventListener('app:toggleSidebar', handler);
+    }, []);
+
     const addDocuments = async (files) => {
         setErrorMsg('');
         if (!files || !files.length) return;
@@ -185,17 +191,15 @@ const DocumentsView = () => {
                     <main className="flex-1 min-w-0 h-full overflow-auto">
                         {/* keep your existing right-side content exactly as-is */}
                         <div className="h-full flex flex-col">
-                            <div className="bg-white border-b">
+                            {selectedDoc && <div className="bg-white border-b">
                                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                                     <h1 className="text-3xl font-bold text-gray-900">Documents</h1>
 
                                 </div>
-                            </div>
+                            </div>}
 
                             <div className="flex-1 overflow-auto">
-                                <div className="mx-auto w-full max-w-7xl p-6">
-                                    <PreviewPane doc={selectedDoc} />
-                                </div>
+                                <PreviewPane doc={selectedDoc} />
                             </div>
                         </div>
                         <Modal

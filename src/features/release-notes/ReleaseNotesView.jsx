@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Footer from '../../layout/Footer';
 
 import FiltersPanel from './components/FiltersPanel';
 import PreviewPanel from './components/PreviewPanel';
 import { tasksToMarkdown, classifyTask, suggestNextVersion } from '../../utils/releaseNotes';
 import { storage, RN_NS, BOARD_NS } from '../../packages/storage';
+import { EmptyState } from '../../packages/ui';
 
 function todayISO() {
     return new Date().toISOString().slice(0, 10);
@@ -14,29 +14,6 @@ function daysAgoISO(n) {
     d.setDate(d.getDate() - n);
     return d.toISOString().slice(0, 10);
 }
-
-// imports...
-
-
-// imports...
-
-const ReleaseEmptyState = () => (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-        <div className='rounded-xl border bg-white p-8 shadow-sm'>
-            <h2 className="text-2xl font-semibold mb-3">Create your first release</h2>
-            <p className="mb-4">
-                Use the <span className="font-medium">Project</span> picker on the left to choose a project.
-                Then set a date range and click <span className="font-medium">Generate</span>.
-                We’ll create editable Markdown and show a live preview here.
-            </p>
-            <ul className="space-y-2 list-disc pl-6">
-                <li>Group items by Feature / Fix / Chore, etc.</li>
-                <li>Edit Markdown, copy it, or download as <code>.md</code>.</li>
-                <li>Click “Save Release” to store it locally for later.</li>
-            </ul></div>
-
-    </div>
-);
 
 
 const ReleaseNotesView = () => {
@@ -114,6 +91,12 @@ const ReleaseNotesView = () => {
             return completed >= from && completed <= to;
         });
     }, [projectTasks, fromDate, toDate]);
+
+    useEffect(() => {
+        const handler = () => setIsSidebarOpen((s) => !s);
+        window.addEventListener('app:toggleSidebar', handler);
+        return () => window.removeEventListener('app:toggleSidebar', handler);
+    }, []);
 
     const onGenerate = () => {
         setGeneratedTasks(completedInRange);
@@ -206,7 +189,21 @@ const ReleaseNotesView = () => {
 
                     {/* Right preview */}
                     {!selectedProjectId ? (
-                        ReleaseEmptyState()
+                        <EmptyState
+                            title="Create your first release"
+                            description={
+                                <>
+                                    Use the <span className="font-medium">Project</span> picker on the left to choose a project.
+                                    Then set a date range and click <span className="font-medium">Generate</span>. We’ll create
+                                    editable Markdown and show a live preview here.
+                                </>
+                            }
+                            bullets={[
+                                <>Group items by Feature / Fix / Chore, etc.</>,
+                                <>Edit Markdown, copy it, or download as <code>.md</code>.</>,
+                                <>Click “Save Release” to store it locally for later.</>,
+                            ]}
+                        />
                     ) :
                         <main className="flex-1 min-w-0 h-full overflow-auto">
                             <PreviewPanel
@@ -226,7 +223,6 @@ const ReleaseNotesView = () => {
                 </div>
             </div>
 
-            <Footer />
         </div>
     );
 };

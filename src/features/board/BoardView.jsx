@@ -6,6 +6,7 @@ import Column from "./components/Column";
 import Sidebar from "./components/Sidebar";
 import { storage, BOARD_NS } from "../../packages/storage";
 import { Link } from "react-router-dom";
+import { EmptyState } from "../../packages/ui";
 
 // Keys used in localStorage
 // const LS_PROJECTS = 'board:projects';
@@ -91,6 +92,12 @@ const BoardView = () => {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsSidebarOpen((s) => !s);
+    window.addEventListener('app:toggleSidebar', handler);
+    return () => window.removeEventListener('app:toggleSidebar', handler);
   }, []);
 
   // project CRUD
@@ -333,7 +340,7 @@ const BoardView = () => {
             <div className="h-full flex flex-col">
               {/* Title bar */}
               <div className="bg-white border-b">
-                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+                {selectedProject && <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                   <div className="flex gap-2">
                     {" "}
                     <h1 className="text-3xl font-bold text-gray-900">
@@ -361,7 +368,7 @@ const BoardView = () => {
                       }
                       disabled={!selectedProject}
                       className={`px-4 py-2 rounded-lg shadow-md font-semibold flex items-center
-        ${selectedProject
+                      ${selectedProject
                           ? "bg-green-500 text-white hover:bg-green-600"
                           : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
@@ -383,7 +390,7 @@ const BoardView = () => {
                       Add Column
                     </button>
                   </div>
-                </div>
+                </div>}
               </div>
 
               {/* Content */}
@@ -391,28 +398,21 @@ const BoardView = () => {
                 <div className="flex-1 flex items-center justify-center text-xl text-gray-600">
                   Loading board...
                 </div>
-              ) : !selectedProject ? (
-                <div className="flex-1 overflow-auto">
-                  <div className="mx-auto max-w-3xl px-6 py-12">
-                    <div className="rounded-xl border bg-white p-8 shadow-sm">
-                      <h2 className="text-2xl font-semibold mb-3">
-                        Create your first project
-                      </h2>
-                      <p className="text-gray-600">
-                        Use the{" "}
-                        <span className="font-medium">“New project name”</span>{" "}
-                        field in the left sidebar to add a project. Once
-                        created, we’ll auto-add the columns <em>To Do</em>,{" "}
-                        <em>In Progress</em>, and <em>Done</em>.
-                      </p>
-                      <ul className="mt-6 space-y-2 text-gray-700 list-disc pl-5">
-                        <li>Your projects appear in the left panel.</li>
-                        <li>Click a project to open its board here.</li>
-                        <li>Use “Add Column” to customize the workflow.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+              ) : !selectedProject ? (<EmptyState
+                title="Create your first project"
+                description={
+                  <>
+                    Use the <span className="font-medium">“New project name”</span> field in the left sidebar to add a project.
+                    Once created, we’ll auto-add the columns <em>To Do</em>, <em>In Progress</em>, and <em>Done</em>.
+                  </>
+                }
+                bullets={[
+                  'Your projects appear in the left panel.',
+                  'Click a project to open its board here.',
+                  'Use “Add Column” to customize the workflow.',
+                ]}
+              />
+
               ) : (
                 <div className="flex-1 min-h-0 flex flex-col">
                   {/* Tabs bar */}
@@ -511,10 +511,10 @@ const BoardView = () => {
             </div>
           </main>
         </div>
-      </div>
+      </div >
 
       {/* Modals */}
-      <Modal
+      <Modal Modal
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
         title={editingTask && editingTask.id ? "Edit Task" : "New Task"}
@@ -624,7 +624,7 @@ const BoardView = () => {
           </button>
         </div>
       </Modal>
-    </div>
+    </div >
   );
 };
 

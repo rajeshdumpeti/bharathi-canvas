@@ -8,7 +8,6 @@ export default function HubSidebar({ sections, activeKey, onSelect, onConfirmDel
     return (
         <div className="flex h-full flex-col">
             <h3 className="text-xl font-bold mb-4">Projects</h3>
-
             {/* Projects list */}
             <ul className="space-y-2 mb-4 overflow-y-auto pr-1">
                 {projects.map((p) => (

@@ -1,28 +1,25 @@
 import React from 'react';
 import DocxRenderer from './DocxRenderer';
+import { EmptyState } from '../../../packages/ui';
 
-const EmptyState = () => (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-        <div className="rounded-xl border bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-3">Add your first document</h2>
-            <p className="text-gray-600">
-                Use the <span className="font-medium">“Upload Document”</span> card in the left sidebar to add files.
-                We’ll store them locally and show a preview here.
-            </p>
-
-            <ul className="mt-6 space-y-2 text-gray-700 list-disc pl-5">
-                <li>Drag & drop files or click <em>Browse</em> to select.</li>
-                <li>Supported types: <code>PDF</code>, <code>DOCX</code>, <code>TXT</code> (max 5&nbsp;MB each).</li>
-                <li>Your documents will appear in the list on the left.</li>
-                <li>Click a document to open its preview on this page.</li>
-            </ul>
-        </div>
-    </div>
-);
-
-
+const DocumentEmptyState = () => <EmptyState
+    title="Add your first document"
+    description={
+        <>
+            Use the <span className="font-medium">“Upload Document”</span> card in the left sidebar menu to add files.
+            We’ll store them locally and show a preview here.
+        </>
+    }
+    bullets={[
+        <>Supported types: <code>PDF</code>, <code>DOCX</code>, <code>TXT</code> (max 5&nbsp;MB each).</>,
+        'Your documents will appear in the list on the left.',
+        'Click a document to open its preview on this page.',
+    ]}
+/>
 const PreviewPane = ({ doc }) => {
-    if (!doc) return <EmptyState />;
+    if (!doc) return <DocumentEmptyState />
+
+
 
     const isPDF = /pdf/i.test(doc.type) || /\.pdf$/i.test(doc.name);
     const isTXT = /text\/plain/i.test(doc.type) || /\.txt$/i.test(doc.name);
