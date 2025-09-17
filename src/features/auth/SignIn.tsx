@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "lib/auth/AuthProvider";
 import { useForm } from "react-hook-form";
@@ -15,6 +15,7 @@ type SignInForm = z.infer<typeof SignInSchema>;
 export default function SignIn() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const {
     register,
@@ -23,36 +24,26 @@ export default function SignIn() {
   } = useForm<SignInForm>({ resolver: zodResolver(SignInSchema) });
 
   const onSubmit = (data: SignInForm) => {
-    // demo: accept anything and mark user “signed in”
-    const name = data.email.split("@")[0] || "User";
-    signIn({ name, email: data.email });
-    navigate("/"); // back to landing
+    setIsTransitioning(true); // Start transition
+    setTimeout(() => {
+      const name = data.email.split("@")[0] || "User";
+      signIn({ name, email: data.email });
+      navigate("/"); // Navigate after transition
+    }, 100); // Match the transition duration
   };
 
   return (
     <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-5xl grid md:grid-cols-2 rounded-2xl overflow-hidden border bg-white shadow-sm">
+      <div
+        className={`w-full max-w-5xl grid md:grid-cols-2 rounded-2xl overflow-hidden border bg-white shadow-sm transition-opacity duration-300 ${
+          isTransitioning ? "opacity-0" : "opacity-100"
+        }`}
+      >
         {/* Left: Sign-in form */}
         <div className="p-8 md:p-10">
           <h1 className="text-3xl font-bold mb-6 text-gray-900">Sign In</h1>
 
-          {/* Social row (placeholders for now) */}
-          <div className="flex items-center gap-3 mb-6">
-            {["G", "f", "gh", "in"].map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="h-10 w-10 rounded-lg border text-gray-700 hover:bg-gray-50"
-                title="Not wired yet"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          <p className="text-sm text-gray-500 mb-4">
-            or use your email password
-          </p>
+          <p className="text-sm text-gray-500 mb-4">Use your email password</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -111,6 +102,7 @@ export default function SignIn() {
             </p>
             <Link
               to="/register"
+              onClick={() => setIsTransitioning(true)} // Trigger transition on navigation
               className="inline-block mt-2 rounded-full border border-white/70 px-6 py-2 font-semibold hover:bg-white hover:text-indigo-700 transition"
             >
               SIGN UP

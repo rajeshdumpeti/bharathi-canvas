@@ -106,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({
           <Link
             to="/signin"
             onClick={() => setMobileOpen(false)}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
+            className="px-3 py-1.5 rounded-md text-sm bg-white/10 hover:bg-white/20 text-white"
           >
             Sign in
           </Link>

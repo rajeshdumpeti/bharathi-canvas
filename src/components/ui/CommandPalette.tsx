@@ -4,13 +4,11 @@ import { useSearch } from "lib/search/SearchProvider";
 export default function CommandPalette() {
   const { isOpen, close, query, setQuery, results, search } = useSearch();
 
-  // flat list is already returned by the provider; just normalize a group label
   const flat = useMemo(
     () => results.map((it) => ({ ...it, _group: it.sourceLabel || "Results" })),
     [results]
   );
 
-  // group by sourceLabel for section headers
   const groups = useMemo(() => {
     const map = new Map<string, typeof flat>();
     flat.forEach((it) => {
@@ -18,12 +16,12 @@ export default function CommandPalette() {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(it);
     });
-    return Array.from(map.entries()); // [ [label, items[]], ... ]
+    return Array.from(map.entries());
   }, [flat]);
 
   const [index, setIndex] = useState(0);
 
-  // autofocus input
+  // autofocus
   useEffect(() => {
     if (!isOpen) return;
     const t = setTimeout(
@@ -33,10 +31,7 @@ export default function CommandPalette() {
     return () => clearTimeout(t);
   }, [isOpen]);
 
-  // seed & debounce search
-  useEffect(() => {
-    if (isOpen) search(query);
-  }, [isOpen]); // initial
+  // debounce searching while open
   useEffect(() => {
     if (!isOpen) return;
     const id = setTimeout(() => search(query), 120);
@@ -58,10 +53,10 @@ export default function CommandPalette() {
     }
     if (e.key === "Enter") {
       e.preventDefault();
-      const target = flat[index];
-      if (target?.action) {
+      const item = flat[index];
+      if (item?.action) {
         close();
-        target.action();
+        item.action();
       }
     }
   };

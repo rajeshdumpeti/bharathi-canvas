@@ -4,7 +4,15 @@
     "lib": ["DOM", "ES2020"],
     "jsx": "react-jsx",
     "module": "ESNext",
-    "moduleResolution": "Bundler", // Updated from "Node"
+    "moduleResolution": "bundler",
+    "baseUrl": "src",
+    "paths": {
+      "packages/*": ["packages/*"],
+      "components/*": ["components/*"],
+      "features/*": ["features/*"],
+      "lib/*": ["lib/*"],
+      "types/*": ["types/*"]
+    },
     "skipLibCheck": true,
     "allowJs": true,
     "checkJs": false,
@@ -12,11 +20,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "strict": false,
-    "baseUrl": "src",
-    "paths": {
-      "packages/*": ["../packages/*"] // Optional, adjust as needed
-    }
+    "strict": false
   },
   "include": ["src"]
 }

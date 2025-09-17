@@ -1,14 +1,21 @@
-import React from 'react';
+import React from "react";
+import type { Task } from "../../../types/board";
 
-const priorityColors = {
-  High: 'border-l-4 border-red-500',
-  Medium: 'border-l-4 border-yellow-500',
-  Low: 'border-l-4 border-green-500',
+const priorityColors: Record<NonNullable<Task["priority"]>, string> = {
+  High: "border-l-4 border-red-500",
+  Medium: "border-l-4 border-yellow-500",
+  Low: "border-l-4 border-green-500",
 };
 
-const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
-  return (
+export interface TaskCardProps {
+  task: Task;
+  onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
+  onEdit: () => void;
+  onDelete?: (taskId: string) => void; // not used in UI right now, kept for parity
+}
 
+const TaskCard: React.FC<TaskCardProps> = ({ task, onDragStart, onEdit }) => {
+  return (
     <div
       className={`p-4 bg-white rounded-lg shadow-sm cursor-grab ${priorityColors[task.priority]} transition-transform duration-200 hover:scale-[1.02]`}
       draggable
@@ -29,7 +36,6 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
         )}
       </div>
 
-
       <h4 className="font-semibold text-gray-900">{task.title}</h4>
 
       {task.description && (
@@ -37,8 +43,13 @@ const TaskCard = ({ task, onDragStart, onEdit, onDelete }) => {
           {task.description}
         </p>
       )}
+
       <div className="space-y-1 text-xs text-gray-500 mb-2">
-        <p>{task.assignee ? `Assigned to: ${String(task.assignee)}` : 'Unassigned'}</p>
+        <p>
+          {task.assignee
+            ? `Assigned to: ${String(task.assignee)}`
+            : "Unassigned"}
+        </p>
         {task.createdAt && <p>Created on: {task.createdAt}</p>}
         {task.dueDate && <p>Complete by: {task.dueDate}</p>}
       </div>

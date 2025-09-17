@@ -18,12 +18,11 @@ export default function LandingPage({
     return (
         <div className="bg-gray-50 flex flex-col items-center justify-center">
             <div className="flex flex-1 flex-col p-4 text-center">
-                <h1 className="text-5xl font-bold text-gray-900 mb-4 animate-fade-in-down">
-                    Namaste!
-                </h1>
-                <p className="text-lg text-gray-600 mb-8 animate-fade-in-up">
+                <h1 className="text-5xl font-bold text-gray-600 mb-4 animate-fade-in-down">
                     Welcome to Bharathi's Canvas
-                </p>
+
+                </h1>
+
                 {/* Cards row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
                     {/* Personal Board */}

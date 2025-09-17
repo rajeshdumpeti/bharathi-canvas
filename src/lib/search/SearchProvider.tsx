@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useCallback,
 } from "react";
 
 export type SearchItem = {
@@ -12,39 +13,31 @@ export type SearchItem = {
   title: string;
   subtitle?: string;
   action?: () => void;
-  // Optional metadata if you want to show grouping/badges later:
   sourceId?: string;
   sourceLabel?: string;
 };
 
 export type SafeGet = <T>(key: string, fallback: T) => T;
-
 export type SourceFn = (
   q: string,
   helpers: { safeGet: SafeGet }
-) => SearchItem[]; // keep sync for now
-
+) => SearchItem[];
 export interface RegisterSource {
-  (id: string, label: string, fn: SourceFn): () => void; // returns unregister
+  (id: string, label: string, fn: SourceFn): () => void;
 }
-
 export interface SearchContext {
   isOpen: boolean;
   open: () => void;
   close: () => void;
   toggle: () => void;
-
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
-
   results: SearchItem[];
-
   registerSource: RegisterSource;
   search: (q: string) => void;
 }
 
 const SearchCtx = createContext<SearchContext | undefined>(undefined);
-
 export function useSearch(): SearchContext {
   const ctx = useContext(SearchCtx);
   if (!ctx) throw new Error("useSearch must be used within <SearchProvider>");
@@ -52,6 +45,16 @@ export function useSearch(): SearchContext {
 }
 
 type SourceDef = { id: string; label: string; fn: SourceFn };
+const shallowSameList = (a: SearchItem[], b: SearchItem[]) =>
+  a === b ||
+  (a.length === b.length &&
+    a.every(
+      (x, i) =>
+        x.id === b[i].id &&
+        x.sourceId === b[i].sourceId &&
+        x.title === b[i].title &&
+        x.subtitle === b[i].subtitle
+    ));
 
 export default function SearchProvider({
   children,
@@ -60,27 +63,27 @@ export default function SearchProvider({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchItem[]>([]); // flat list from all sources
+  const [results, setResults] = useState<SearchItem[]>([]);
 
-  // id -> { id, label, fn }
   const sourcesRef = useRef<Map<string, SourceDef>>(new Map());
 
-  /** Register a search source; returns an unregister function */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const registerSource: RegisterSource = (id, label, fn) => {
+  /** stable register */
+  const registerSource: RegisterSource = useCallback((id, label, fn) => {
     sourcesRef.current.set(id, { id, label, fn });
-    return () => sourcesRef.current.delete(id);
-  };
+    return () => {
+      sourcesRef.current.delete(id);
+    };
+  }, []);
 
-  const close = () => {
+  const close = useCallback(() => {
     setIsOpen(false);
     setQuery("");
     setResults([]);
-  };
-  const toggle = () => setIsOpen((v) => !v);
+  }, []);
+  const toggle = useCallback(() => setIsOpen((v) => !v), []);
 
-  /** Helper given to sources to safely read localStorage JSON */
-  const safeGet: SafeGet = (key, fallback) => {
+  /** Helper for sources */
+  const safeGet: SafeGet = useCallback((key, fallback) => {
     try {
       const raw = localStorage.getItem(key);
       const val = raw ? JSON.parse(raw) : fallback;
@@ -88,18 +91,21 @@ export default function SearchProvider({
     } catch {
       return fallback;
     }
-  };
+  }, []);
 
-  /** Run a search across all registered sources (sync) */
-  const search = React.useCallback((qRaw: string) => {
-    const q = (qRaw || "").trim();
-    setQuery(q);
+  /** idempotent search */
+  const search = useCallback(
+    (qRaw: string) => {
+      const q = (qRaw || "").trim();
 
-    const items: SearchItem[] = Array.from(sourcesRef.current.values()).flatMap(
-      (src) => {
+      // only set query if it actually changed
+      setQuery((prev) => (prev === q ? prev : q));
+
+      const items: SearchItem[] = Array.from(
+        sourcesRef.current.values()
+      ).flatMap((src) => {
         try {
           const out = src.fn(q, { safeGet }) || [];
-          // Optionally stamp source metadata (useful for UIs later)
           return out.map((i) => ({
             ...i,
             sourceId: i.sourceId ?? src.id,
@@ -110,29 +116,29 @@ export default function SearchProvider({
           console.warn(`[search] source "${src.label}" failed:`, err);
           return [];
         }
-      }
-    );
+      });
 
-    setResults(items);
-  }, []);
+      // only update if list is actually different
+      setResults((prev) => (shallowSameList(prev, items) ? prev : items));
+    },
+    [safeGet]
+  );
 
-  // Open palette and seed results so it isn't empty on first paint
-  const open = React.useCallback(() => {
+  // Open palette and seed results once
+  const open = useCallback(() => {
     setIsOpen(true);
-    // Let any onOpen animations/layout happen, then seed
     setTimeout(() => search(query || ""), 0);
   }, [query, search]);
 
-  // Keyboard: ⌘K / Ctrl+K to open; Esc to close
+  // ⌘K / Ctrl+K to open; Esc to close
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!e || (e as any).isComposing) return;
+      if (!e) return;
       const key = (e.key || "").toLowerCase();
       const meta = !!(e.metaKey || e.ctrlKey);
-
       if (meta && key === "k") {
         e.preventDefault();
-        toggle();
+        setIsOpen((v) => !v);
         return;
       }
       if (key === "escape") {
@@ -142,7 +148,7 @@ export default function SearchProvider({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [close]);
 
   const value: SearchContext = useMemo(
     () => ({
@@ -156,7 +162,7 @@ export default function SearchProvider({
       registerSource,
       search,
     }),
-    [isOpen, open, query, results, registerSource, search]
+    [isOpen, open, close, toggle, query, results, registerSource, search]
   );
 
   return <SearchCtx.Provider value={value}>{children}</SearchCtx.Provider>;
