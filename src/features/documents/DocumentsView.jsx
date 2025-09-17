@@ -4,7 +4,7 @@ import UploadCard from './components/UploadCard';
 import DocumentsList from './components/DocumentsList';
 import PreviewPane from './components/PreviewPane';
 import Modal from '../../components/ui/Modal'
-import { storage, DOCS_NS } from '../../packages/storage';
+import { storage, DOCS_NS } from 'packages/storage';
 
 const DocumentsView = () => {
     const [documents, setDocuments] = useState(() => storage.get(DOCS_NS, 'items', []));

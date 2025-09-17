@@ -4,7 +4,7 @@ import TaskForm from "./components/TaskForm";
 import AddColumnModal from "./components/AddColumnModal";
 import Column from "./components/Column";
 import Sidebar from "./components/Sidebar";
-import { storage, BOARD_NS } from "../../packages/storage";
+import { storage, BOARD_NS } from 'packages/storage'
 import { Link } from "react-router-dom";
 import { EmptyState } from "../../packages/ui";
 

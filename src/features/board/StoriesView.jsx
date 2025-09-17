@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { storage, BOARD_NS } from '../../packages/storage';
+import { storage, BOARD_NS } from 'packages/storage';
 import ExportStoriesBar from './components/ExportStoriesBar';
 
 const STATUSES = [
