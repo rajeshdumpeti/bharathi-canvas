@@ -1,6 +1,6 @@
 // src/layout/Header.tsx
-import React, { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useRef, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import LogoMonogram from "../components/ui/LogoMonogram";
 import LogoWordmark from "../components/ui/LogoWordmark";
 import type { HeaderProps } from "../types/header";
@@ -20,8 +20,14 @@ const Header: React.FC<HeaderProps> = ({
   const [mobileOpen, setMobileOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   useOutsideClose(panelRef, () => setMobileOpen(false));
-
+  const navigate = useNavigate(); // Get the navigate function
   const initials = getInitials(user?.name || user?.email || "U");
+
+  const handleSignOut = useCallback(() => {
+    setMobileOpen(false);
+    onSignOut();
+    navigate("/signin");
+  }, [setMobileOpen, onSignOut, navigate]);
 
   return (
     <header className="text-white flex items-center justify-between shadow-xl border-b border-gray-800 bg-gray-900">
@@ -69,8 +75,8 @@ const Header: React.FC<HeaderProps> = ({
               {l.label}
             </Link>
           ))}
-
-        {onOpenSearch && (
+        {/* 
+        {onOpenSearch && user && (
           <button
             onClick={onOpenSearch}
             className="px-3 py-1.5 rounded-md text-sm text-white/90 hover:text-white hover:bg-white/10"
@@ -79,22 +85,20 @@ const Header: React.FC<HeaderProps> = ({
           >
             Search
           </button>
-        )}
+        )} */}
 
         {user ? (
           <div className="flex items-center gap-2">
-            <div
+            {/* <div
               title={user.email}
               className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm font-semibold"
+              onClick={() => setMobileOpen((v) => !v)}
             >
               {initials}
-            </div>
+            </div> */}
             {onSignOut && (
               <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  onSignOut();
-                }}
+                onClick={handleSignOut}
                 className="px-3 py-1.5 rounded-md text-sm bg-white/10 hover:bg-white/20 text-white"
                 type="button"
               >
@@ -212,10 +216,7 @@ const Header: React.FC<HeaderProps> = ({
                 ))}
                 {onSignOut && (
                   <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      onSignOut();
-                    }}
+                    onClick={handleSignOut}
                     className="w-full text-left px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-white"
                     type="button"
                   >

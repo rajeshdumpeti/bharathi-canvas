@@ -1,37 +1,64 @@
-// src/helpers/useOutsideClose.ts
-import { useEffect } from "react";
+import * as React from "react";
 
-export interface OutsideCloseOptions {
+export type OutsideCloseOptions = {
+  /** Close when Escape is pressed (default: true) */
   closeOnEsc?: boolean;
-  closeOnClickOutside?: boolean;
-}
+  /** Close when a pointer occurs outside the element (default: true) */
+  closeOnOutside?: boolean;
+  /** Event type for outside detection (default: 'pointerdown') */
+  outsideEvent?: "pointerdown" | "mousedown" | "click";
+  /** Use capture phase to catch events before stopPropagation (default: true) */
+  capture?: boolean;
+};
 
 /**
- * Calls `onClose` when clicking outside the ref'd node or pressing Escape.
+ * Calls `onClose` when clicking/tapping outside the ref'd node or pressing Escape.
+ * Works with portals by checking `event.composedPath()`.
  */
 export function useOutsideClose<T extends HTMLElement>(
   ref: React.RefObject<T>,
   onClose?: () => void,
-  opts: OutsideCloseOptions = {}
+  {
+    closeOnEsc = true,
+    closeOnOutside = true,
+    outsideEvent = "pointerdown",
+    capture = true,
+  }: OutsideCloseOptions = {}
 ) {
-  const { closeOnEsc = true, closeOnClickOutside = true } = opts;
+  // keep latest callback without re-binding listeners
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
 
-  useEffect(() => {
-    const onMouseDown = (e: MouseEvent) => {
-      if (!closeOnClickOutside || !ref.current) return;
-      if (e.target instanceof Node && !ref.current.contains(e.target))
-        onClose?.();
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (!closeOnEsc) return;
-      if (e.key === "Escape") onClose?.();
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!closeOnOutside && !closeOnEsc) return;
+    if (!el && !closeOnEsc) return;
+
+    const handleOutside = (e: Event) => {
+      if (!closeOnOutside) return;
+      const target = e.target as Node | null;
+      // composedPath supports clicks from shadow DOM/portals
+      const path = (e as any).composedPath?.() as EventTarget[] | undefined;
+      const contains = el
+        ? path
+          ? path.includes(el)
+          : el.contains(target as Node)
+        : false;
+      if (!contains) onCloseRef.current?.();
     };
 
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKeyDown);
+    const handleKey = (e: KeyboardEvent) => {
+      if (closeOnEsc && e.key === "Escape") onCloseRef.current?.();
+    };
+
+    document.addEventListener(outsideEvent, handleOutside, { capture });
+    document.addEventListener("keydown", handleKey, { capture: false });
+
     return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener(outsideEvent, handleOutside, {
+        capture,
+      } as any);
+      document.removeEventListener("keydown", handleKey);
     };
-  }, [ref, onClose, closeOnEsc, closeOnClickOutside]);
+  }, [ref, closeOnEsc, closeOnOutside, outsideEvent, capture]);
 }

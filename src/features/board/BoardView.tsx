@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, EmptyState } from "components/ui";
+import { Modal, EmptyState } from "packages/ui";
 import TaskForm from "./components/TaskForm"; // JS or TSX is fine
 import AddColumnModal from "./components/AddColumnModal";
 import Column from "./components/Column";
@@ -379,7 +379,9 @@ const BoardView: React.FC = () => {
                   <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                     <div className="flex gap-2">
                       <h1 className="text-3xl font-bold text-gray-900">
-                        {selectedProject ? selectedProject.name : "Welcome"}
+                        {selectedProject
+                          ? `${selectedProject.name} Project`
+                          : "Welcome"}
                       </h1>
                       <button
                         onClick={() => handleAddTask("to-do")}
