@@ -1,0 +1,133 @@
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "lib/auth/AuthProvider";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// --- form schema ---
+const RegisterSchema = z.object({
+  firstName: z.string().min(1, "Required"),
+  lastName: z.string().min(1, "Required"),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Minimum 6 characters"),
+});
+type RegisterForm = z.infer<typeof RegisterSchema>;
+
+export default function Register() {
+  const navigate = useNavigate();
+  const { signIn } = useAuth(); // demo: treat as signed-in after register
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterForm>({ resolver: zodResolver(RegisterSchema) });
+
+  const onSubmit = (data: RegisterForm) => {
+    const name = `${data.firstName} ${data.lastName}`.trim() || "User";
+    signIn({ name, email: data.email });
+    navigate("/");
+  };
+
+  return (
+    <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-5xl grid md:grid-cols-2 rounded-2xl overflow-hidden border bg-white shadow-sm">
+        {/* Left: purple panel */}
+        <div className="hidden md:flex items-center justify-center bg-indigo-700 text-white p-10">
+          <div className="max-w-xs text-center space-y-4">
+            <h2 className="text-3xl font-extrabold">Welcome Back!</h2>
+            <p className="text-white/90">
+              Already have an account? Sign in to continue.
+            </p>
+            <Link
+              to="/signin"
+              className="inline-block mt-2 rounded-full border border-white/70 px-6 py-2 font-semibold hover:bg-white hover:text-indigo-700 transition"
+            >
+              SIGN IN
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: Register form */}
+        <div className="p-8 md:p-10">
+          <h1 className="text-3xl font-bold mb-6 text-gray-900">
+            Create Account
+          </h1>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <input
+                  {...register("firstName")}
+                  placeholder="First name"
+                  className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.firstName.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <input
+                  {...register("lastName")}
+                  placeholder="Last name"
+                  className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.lastName.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <input
+                {...register("email")}
+                type="email"
+                placeholder="Email"
+                className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                {...register("password")}
+                type="password"
+                placeholder="Password"
+                className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-lg bg-indigo-700 text-white px-4 py-2 font-semibold hover:bg-indigo-800 disabled:opacity-60"
+            >
+              {isSubmitting ? "Creating…" : "REGISTER"}
+            </button>
+
+            <p className="text-xs text-gray-500 mt-2">
+              Already have an account?{" "}
+              <Link to="/signin" className="text-indigo-600 hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
