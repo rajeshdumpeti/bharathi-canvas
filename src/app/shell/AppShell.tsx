@@ -8,7 +8,7 @@ import { useSearch } from "../../lib/search/SearchProvider";
 import { useAuth } from "../../lib/auth/AuthProvider";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home" },
+  { to: "/", label: "Dashboard" },
   { to: "/board", label: "Board" },
   { to: "/documents", label: "Documents" },
   { to: "/release-notes", label: "Release Notes" },

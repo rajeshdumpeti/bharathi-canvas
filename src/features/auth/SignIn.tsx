@@ -41,7 +41,7 @@ export default function SignIn() {
       >
         {/* Left: Sign-in form */}
         <div className="p-8 md:p-10">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900">Sign In</h1>
+          <h1 className="text-2xl font-bold mb-6 text-gray-900">Sign In</h1>
 
           <p className="text-sm text-gray-500 mb-4">Use your email password</p>
 
@@ -108,7 +108,7 @@ export default function SignIn() {
         {/* Right: purple panel */}
         <div className="hidden md:flex items-center justify-center bg-indigo-700 text-white p-10 relative">
           <div className="max-w-xs text-center space-y-4">
-            <h2 className="text-3xl font-extrabold">Hello, Friend!</h2>
+            <h2 className="text-2xl font-extrabold">Hello, Friend!</h2>
             <p className="text-white/90">
               Register with your personal details to use all site features
             </p>

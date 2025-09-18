@@ -23,7 +23,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   return (
     <div className="h-full flex flex-col">
       <div className="bg-white border-b">
-        <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+        <div className="mx-auto w-full max-w-7xl flex items-center justify-between py-4">
           <div className="flex items-center gap-3">
             <label className="text-sm text-gray-600">Version</label>
             <input

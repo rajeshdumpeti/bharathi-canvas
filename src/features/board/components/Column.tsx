@@ -51,16 +51,14 @@ const Column: React.FC<ColumnProps> = ({
               </svg>
             </button>
           ) : null}
-
-          {/* If you re-enable column delete, keep this handler:
-          <button
+          {/* If you re-enable column delete, keep this handler: */}
+          {/* <button
             onClick={() => onConfirmDeleteColumn(id)}
             aria-label={`Delete ${title} column`}
             className="p-1.5 rounded-full bg-red-200 text-red-600 hover:bg-red-300 transition-colors"
           >
-            ...
-          </button>
-          */}
+            Delete
+          </button> */}
         </div>
       </div>
 

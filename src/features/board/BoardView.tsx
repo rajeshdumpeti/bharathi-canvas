@@ -372,13 +372,14 @@ const BoardView: React.FC = () => {
 
           {/* Right content */}
           <main className="flex-1 min-w-0 h-full overflow-auto">
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col px-4">
               {/* Title bar */}
               <div className="bg-white border-b">
                 {selectedProject && (
-                  <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
-                    <div className="flex gap-2">
-                      <h1 className="text-3xl font-bold text-gray-900">
+                  <div className="mx-auto w-full max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 gap-3">
+                    {" "}
+                    <div className="flex w-full justify-between sm:justify-start sm:gap-2">
+                      <h1 className="text-2xl font-bold text-gray-900">
                         {selectedProject
                           ? `${selectedProject.name} Project`
                           : "Welcome"}
@@ -390,7 +391,7 @@ const BoardView: React.FC = () => {
                         Create Story
                       </button>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex w-full justify-between sm:justify-end sm:gap-2">
                       <Link
                         to="/board/stories"
                         className="px-4 py-2 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
@@ -457,7 +458,7 @@ const BoardView: React.FC = () => {
                 <div className="flex-1 min-h-0 flex flex-col">
                   {/* Tabs bar */}
                   <div className="bg-white border-b sticky top-0 z-10">
-                    <div className="mx-auto w-full max-w-7xl flex items-center gap-3 px-4 py-3">
+                    <div className="mx-auto w-full max-w-7xl flex items-center gap-3 py-3">
                       <button
                         aria-label="Scroll left"
                         onClick={() => scrollColumnsBy(-320)}
@@ -520,7 +521,7 @@ const BoardView: React.FC = () => {
                   <div className="flex-1 min-h-0">
                     <div
                       ref={columnsRef}
-                      className="mx-auto w-full max-w-7xl h-full px-4 py-6 overflow-x-auto overflow-y-visible board-scrollbar"
+                      className="mx-auto w-full max-w-7xl h-full px-4 py-2 overflow-x-auto overflow-y-visible board-scrollbar"
                     >
                       <div className="flex flex-row gap-2 pb-6">
                         {columns.map((column) => (

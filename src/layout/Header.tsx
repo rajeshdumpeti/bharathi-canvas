@@ -86,13 +86,13 @@ const Header: React.FC<HeaderProps> = ({
 
         {user ? (
           <div className="flex items-center gap-2">
-            <div
+            {/* <div
               title={user.email}
               className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm font-semibold"
               onClick={() => setMobileOpen((v) => !v)}
             >
               {initials}
-            </div>
+            </div> */}
             {onSignOut && (
               <button
                 onClick={handleSignOut}
@@ -171,7 +171,7 @@ const Header: React.FC<HeaderProps> = ({
                   {initials}
                 </div>
                 <div className="text-white/80 text-sm truncate max-w-[9rem]">
-                  {user ? user.name || user.email : "Guest"}
+                  Profile
                 </div>
               </div>
               <button

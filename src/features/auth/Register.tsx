@@ -44,7 +44,7 @@ export default function Register() {
         {/* Left: purple panel */}
         <div className="hidden md:flex items-center justify-center bg-indigo-700 text-white p-10">
           <div className="max-w-xs text-center space-y-4">
-            <h2 className="text-3xl font-extrabold">Welcome Back!</h2>
+            <h2 className="text-2xl font-extrabold">Welcome Back!</h2>
             <p className="text-white/90">
               Already have an account? Sign in to continue.
             </p>
@@ -60,7 +60,7 @@ export default function Register() {
 
         {/* Right: Register form */}
         <div className="p-8 md:p-10">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900">
+          <h1 className="text-2xl font-bold mb-6 text-gray-900">
             Create Account
           </h1>
 

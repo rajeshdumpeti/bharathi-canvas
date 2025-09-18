@@ -84,7 +84,7 @@ export default function StoriesView() {
   return (
     <div className="h-screen w-full flex flex-col bg-gray-50">
       <div className="bg-white border-b">
-        <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+        <div className="mx-auto w-full max-w-7xl flex items-center justify-between py-4">
           <h1 className="text-2xl font-semibold text-gray-900">User Stories</h1>
           <Link
             to="/board"

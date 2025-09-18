@@ -96,7 +96,7 @@ const DocumentsView: React.FC = () => {
             <div className="h-full flex flex-col">
               {selectedDoc && (
                 <div className="bg-white border-b">
-                  <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+                  <div className="mx-auto w-full max-w-7xl flex items-center justify-between py-4">
                     <h1 className="text-3xl font-bold text-gray-900">
                       Documents
                     </h1>
