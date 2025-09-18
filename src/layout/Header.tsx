@@ -96,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({
             {onSignOut && (
               <button
                 onClick={handleSignOut}
-                className="px-3 py-1.5 rounded-md text-sm bg-white/10 hover:bg-white/20 text-white"
+                className="px-2 py-1 rounded-md text-sm bg-white/10 hover:bg-white/20 text-white"
                 type="button"
               >
                 Sign out
@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({
           <Link
             to="/signin"
             onClick={() => setMobileOpen(false)}
-            className="px-3 py-1.5 rounded-md text-sm bg-white/10 hover:bg-white/20 text-white"
+            className="px-2 py-1 rounded-md text-sm bg-white/10 hover:bg-white/20 text-white"
           >
             Sign in
           </Link>

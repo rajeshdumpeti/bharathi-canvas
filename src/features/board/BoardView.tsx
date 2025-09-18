@@ -372,11 +372,11 @@ const BoardView: React.FC = () => {
 
           {/* Right content */}
           <main className="flex-1 min-w-0 h-full overflow-auto">
-            <div className="h-full flex flex-col px-4">
+            <div className="h-full flex flex-col">
               {/* Title bar */}
               <div className="bg-white border-b">
                 {selectedProject && (
-                  <div className="mx-auto w-full max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 gap-3">
+                  <div className="mx-auto w-full max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-2 gap-3">
                     {" "}
                     <div className="flex w-full justify-between sm:justify-start sm:gap-2">
                       <h1 className="text-2xl font-bold text-gray-900">
@@ -404,7 +404,7 @@ const BoardView: React.FC = () => {
                           selectedProject && setIsColumnModalOpen(true)
                         }
                         disabled={!selectedProject}
-                        className={`px-4 py-2 rounded-lg shadow-md font-semibold flex items-center ${
+                        className={`px-2 py-2 rounded-lg shadow-md font-semibold flex items-center ${
                           selectedProject
                             ? "bg-green-500 text-white hover:bg-green-600"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -458,7 +458,7 @@ const BoardView: React.FC = () => {
                 <div className="flex-1 min-h-0 flex flex-col">
                   {/* Tabs bar */}
                   <div className="bg-white border-b sticky top-0 z-10">
-                    <div className="mx-auto w-full max-w-7xl flex items-center gap-3 py-3">
+                    <div className="mx-auto w-full max-w-7xl flex items-center gap-3 py-2">
                       <button
                         aria-label="Scroll left"
                         onClick={() => scrollColumnsBy(-320)}

@@ -47,9 +47,7 @@ export default function App() {
                                 <Route path="release-notes" element={<ReleaseNotesApp />} />
                                 <Route path="project-hub" element={<ProjectHubApp />} />
                                 <Route path="y" element={<ProjectHubApp />} />
-
                             </Route>
-
                             {/* safety net */}
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
