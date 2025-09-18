@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useProjectHub from '../../../hooks/useProjectHub';
-import SectionHeader from '../../../components/ui/SectionHeader';
 import IconButton from '../../../components/ui/IconButton';
 import ChipInput from '../../../components/ui/ChipInput';
 import SecretText from '../../../components/ui/SecretText';
@@ -46,11 +45,11 @@ export default function Setup() {
     if (mode === 'read') {
         return (
             <div className="space-y-6">
-                <SectionHeader
-                    title="Setup Overview"
-                    mode="read"
-                    onEdit={() => setMode('edit')}
-                />
+                <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold">Setup</h3>
+                    <IconButton onClick={() => setMode("edit")}>Edit</IconButton>
+                </div>
+
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Basics */}
@@ -202,17 +201,25 @@ export default function Setup() {
     };
 
     return (
-        <div className="space-y-6">
-            <SectionHeader
-                title="Edit Setup"
-                mode="edit"
-                onCancel={() => {
-                    setForm(saved);
-                    setMode('read');
-                }}
-                onSave={onSave}
-            />
-
+        <form
+            className="space-y-6"
+            onSubmit={(e) => {
+                e.preventDefault();
+                onSave();
+            }}
+        >
+            <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold">Edit Setup</h3>
+                <div className="flex gap-2">
+                    <IconButton onClick={() => setMode("read")}>Cancel</IconButton>
+                    <button
+                        type="submit"
+                        className="px-3 py-2 rounded bg-blue-600 text-white"
+                    >
+                        Save
+                    </button>
+                </div>
+            </div>
             {/* Basics */}
             <Card title="Basics">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -559,7 +566,7 @@ export default function Setup() {
                     </IconButton>
                 </div>
             </Card>
-        </div>
+        </form>
     );
 }
 

@@ -128,12 +128,18 @@ export default function Register() {
               {isSubmitting ? "Creating…" : "SIGN UP"}
             </button>
 
-            <p className="text-xs text-gray-500 mt-2">
-              Already have an account?{" "}
-              <Link to="/signin" className="text-indigo-600 hover:underline">
-                Sign in
-              </Link>
-            </p>
+            <div className="mt-4 sm:hidden text-center">
+              <span className="text-sm text-gray-500">
+                Already have an account?
+              </span>
+              <button
+                type="button"
+                onClick={() => navigate("/signin")}
+                className="ml-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 underline"
+              >
+                Sign In
+              </button>
+            </div>
           </form>
         </div>
       </div>

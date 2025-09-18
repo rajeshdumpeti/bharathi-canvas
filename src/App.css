@@ -32,7 +32,34 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  /* lock body scroll; allow pane-level scrolling */
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+/* your app shell wrapper should already use h-screen; ensure panes can scroll */
+.app-main,
+main,
+.pane-scroll {
+  min-height: 0;
+  /* critical for flex children */
+  overflow: auto;
+  /* let content panes scroll */
 }

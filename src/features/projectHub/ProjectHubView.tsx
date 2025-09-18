@@ -1,7 +1,6 @@
 import React, { JSX, useEffect, useMemo, useState } from "react";
 import HubSidebar from "./components/HubSidebar";
 import { ProjectHubProvider } from "./context";
-import SectionHeader from "./components/SectionHeader";
 import { EmptyState } from "packages/ui";
 
 // Sections
@@ -174,12 +173,12 @@ function ProjectHubInner(): JSX.Element {
               />
             ) : (
               <>
-                <SectionHeader
+                {/* <SectionHeader
                   title={
                     SECTIONS.find((s) => s.key === activeKey)?.title ||
                     "Section"
                   }
-                />
+                /> */}
                 <div className="mt-4">
                   <ActiveComp />
                 </div>

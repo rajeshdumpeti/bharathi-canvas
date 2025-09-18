@@ -1,10 +1,9 @@
 // src/layout/Header.tsx
-import React, { useRef, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LogoMonogram from "../components/ui/LogoMonogram";
 import LogoWordmark from "../components/ui/LogoWordmark";
 import type { HeaderProps } from "../types/header";
-import { useOutsideClose } from "../hooks/useOutsideClose";
 import { getInitials } from "../utils/getInitials";
 
 const Header: React.FC<HeaderProps> = ({
@@ -18,8 +17,6 @@ const Header: React.FC<HeaderProps> = ({
   onOpenSearch,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
-  useOutsideClose(panelRef, () => setMobileOpen(false));
   const navigate = useNavigate(); // Get the navigate function
   const initials = getInitials(user?.name || user?.email || "U");
 
@@ -89,13 +86,13 @@ const Header: React.FC<HeaderProps> = ({
 
         {user ? (
           <div className="flex items-center gap-2">
-            {/* <div
+            <div
               title={user.email}
               className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm font-semibold"
               onClick={() => setMobileOpen((v) => !v)}
             >
               {initials}
-            </div> */}
+            </div>
             {onSignOut && (
               <button
                 onClick={handleSignOut}
@@ -119,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({
 
       {/* Right: mobile buttons */}
       <div className="md:hidden flex items-center gap-2">
-        {onOpenSearch && (
+        {/* {onOpenSearch && (
           <button
             onClick={onOpenSearch}
             className="p-2 rounded-lg hover:bg-white/10"
@@ -140,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({
               />
             </svg>
           </button>
-        )}
+        )} */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
           className="p-2 rounded-lg hover:bg-white/10"
@@ -167,10 +164,7 @@ const Header: React.FC<HeaderProps> = ({
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" />
-          <div
-            ref={panelRef}
-            className="absolute top-0 right-0 w-72 h-full bg-gray-900 border-l border-gray-800 p-4 space-y-2"
-          >
+          <div className="absolute top-0 right-0 w-72 h-full bg-gray-900 border-l border-gray-800 p-4 space-y-2">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm font-semibold">

@@ -90,6 +90,18 @@ export default function SignIn() {
             >
               {isSubmitting ? "Signing in…" : "SIGN IN"}
             </button>
+            <div className="mt-4 sm:hidden text-center">
+              <span className="text-sm text-gray-500">
+                Don’t have an account?
+              </span>
+              <button
+                type="button"
+                onClick={() => navigate("/register")}
+                className="ml-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 underline"
+              >
+                Sign up
+              </button>
+            </div>
           </form>
         </div>
 
