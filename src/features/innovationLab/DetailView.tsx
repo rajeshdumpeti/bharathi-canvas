@@ -501,7 +501,6 @@ const DetailView: React.FC = () => {
             className="w-full rounded-md border px-3 py-2 font-mono text-sm"
           />
         </div>
-
         {/* footer tip */}
         <p className="text-xs text-gray-400 text-center">
           Changes update the draft locally; click <b>Save</b> to persist.

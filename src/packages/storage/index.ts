@@ -5,12 +5,16 @@ export const BOARD_NS = "board" as const;
 export const HUB_NS = "hub" as const;
 export const DOCS_NS = "docs" as const;
 export const RN_NS = "releaseNotes" as const;
+export const IDEAS_NS = "ideas" as const;
+
+// packages/storage/index.ts  (append near other NS constants)
 
 export type StorageNamespace =
   | typeof BOARD_NS
   | typeof HUB_NS
   | typeof DOCS_NS
-  | typeof RN_NS;
+  | typeof RN_NS
+  | typeof IDEAS_NS;
 
 const k = (ns: StorageNamespace, key: string) => `${ns}:${key}`;
 

@@ -14,6 +14,7 @@ const BoardApp = lazy(() => import('app/board/App'));
 const DocumentsApp = lazy(() => import('app/documents/App'));
 const ReleaseNotesApp = lazy(() => import('app/release-notes/App'));
 const ProjectHubApp = lazy(() => import('app/project-hub/App'));
+const IdeasApp = lazy(() => import('app/ideas/App'));
 const LandingPage = lazy(() => import('features/landing/LandingPage'));
 
 // tiny wrapper to keep your LandingPage callbacks working
@@ -25,6 +26,8 @@ function LandingWithNav() {
             onStartDocs={() => navigate('/documents')}
             onOpenReleaseNotes={() => navigate('/release-notes')}
             onOpenProjectHub={() => navigate('/project-hub')}
+            onOpenIdeas={() => navigate('/ideas')}
+
         />
     );
 }
@@ -46,7 +49,8 @@ export default function App() {
                                 <Route path="documents" element={<DocumentsApp />} />
                                 <Route path="release-notes" element={<ReleaseNotesApp />} />
                                 <Route path="project-hub" element={<ProjectHubApp />} />
-                                <Route path="y" element={<ProjectHubApp />} />
+                                <Route path="ideas/*" element={<IdeasApp />} />
+
                             </Route>
                             {/* safety net */}
                             <Route path="*" element={<Navigate to="/" replace />} />
