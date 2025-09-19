@@ -1,6 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "lib/auth/AuthProvider";
+import {
+  Squares2X2Icon, // Board
+  DocumentTextIcon, // Documents
+  SparklesIcon, // Release Notes
+  CubeTransparentIcon, // Project Hub
+  LightBulbIcon, // Ideas
+} from "@heroicons/react/24/outline";
 
 type Props = {
   /** Optional legacy callbacks (e.g. your LandingWithNav wrapper). */
@@ -8,6 +15,7 @@ type Props = {
   onStartDocs?: () => void; // -> Documents
   onOpenReleaseNotes?: () => void; // -> Release Notes
   onOpenProjectHub?: () => void; // -> Project Hub
+  onOpenIdeas?: () => void;
 };
 
 const LandingPage: React.FC<Props> = ({
@@ -15,6 +23,7 @@ const LandingPage: React.FC<Props> = ({
   onStartDocs,
   onOpenReleaseNotes,
   onOpenProjectHub,
+  onOpenIdeas,
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -38,8 +47,8 @@ const LandingPage: React.FC<Props> = ({
             Welcome to Bharathi&apos;s Canvas
           </h1>
           <p className="mt-2 text-gray-600 max-w-3xl mx-auto text-base sm:text-lg">
-            A local-first productivity workspace where you can plan tasks, keep
-            documents, generate release notes, and document architecture — all
+            A local-first workspace to plan tasks, keep documents, generate
+            release notes, and document architecture & new product ideas — all
             organized by project.
           </p>
 
@@ -54,15 +63,17 @@ const LandingPage: React.FC<Props> = ({
             <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
               Project-centric workflow
             </span>
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+              Innovation Lab
+            </span>
           </div>
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6  max-w-6xl mx-auto w-full">
-          {" "}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 max-w-6xl mx-auto w-full">
           {/* Personal Board */}
-          <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-            <h2 className="text-2xl font-semibold mb-2">Your Personal Board</h2>
+          <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow transition-shadow">
+            <h2 className="text-xl font-semibold mb-1">Your Personal Board</h2>
             <p className="text-sm text-gray-600 mb-6">
               Plan user stories, track status across columns, and keep progress
               visible per project.
@@ -70,31 +81,37 @@ const LandingPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => openOrSignIn("/board", onStart)}
-              className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
+              className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 text-sm"
             >
-              Get Started
+              <span className="inline-flex items-center justify-center gap-2">
+                <Squares2X2Icon className="h-5 w-5" />
+                Get Started
+              </span>
             </button>
           </div>
           {/* Personal Documents */}
-          <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-            <h2 className="text-2xl font-semibold mb-2">
+          <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow transition-shadow">
+            <h2 className="text-xl font-semibold mb-1">
               Your Personal Documents
             </h2>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-gray-600 mb-4">
               Upload and preview PDFs, DOCX, and TXT. Everything is indexed per
               project for quick reference.
             </p>
             <button
               type="button"
               onClick={() => openOrSignIn("/documents", onStartDocs)}
-              className="w-full rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3"
+              className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 text-sm"
             >
-              Open Documents
+              <span className="inline-flex items-center justify-center gap-2">
+                <DocumentTextIcon className="h-5 w-5" />
+                Open Documents
+              </span>
             </button>
           </div>
           {/* Release Notes */}
-          <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-            <h2 className="text-2xl font-semibold mb-2">
+          <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow transition-shadow">
+            <h2 className="text-xl font-semibold mb-1">
               Release Notes Builder
             </h2>
             <p className="text-sm text-gray-600 mb-6">
@@ -104,14 +121,17 @@ const LandingPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => openOrSignIn("/release-notes", onOpenReleaseNotes)}
-              className="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
+              className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 text-sm"
             >
-              Open Release Notes
+              <span className="inline-flex items-center justify-center gap-2">
+                <SparklesIcon className="h-5 w-5" />
+                Open Release Notes
+              </span>
             </button>
           </div>
           {/* Project Hub */}
-          <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-            <h2 className="text-2xl font-semibold mb-2">Project Hub</h2>
+          <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow transition-shadow">
+            <h2 className="text-xl font-semibold mb-1">Project Hub</h2>
             <p className="text-sm text-gray-600 mb-6">
               Capture setup, architecture, APIs, decisions, and links in one
               place alongside your board.
@@ -119,9 +139,30 @@ const LandingPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => openOrSignIn("/project-hub", onOpenProjectHub)}
-              className="w-full rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
+              className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 text-sm"
             >
-              Open Project Hub
+              <span className="inline-flex items-center justify-center gap-2">
+                <CubeTransparentIcon className="h-5 w-5" />
+                Open Project Hub
+              </span>
+            </button>
+          </div>
+          {/* Ideas Lab */}
+          <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow transition-shadow">
+            <h2 className="text-xl font-semibold mb-1">Innovation Lab</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Capture raw sparks, tag them, and evolve each idea into a
+              ready-to-ship spec.
+            </p>
+            <button
+              type="button"
+              onClick={() => openOrSignIn("/ideas", onOpenIdeas)}
+              className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 text-sm"
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <LightBulbIcon className="h-5 w-5" />
+                Open Innovation Lab
+              </span>
             </button>
           </div>
         </div>

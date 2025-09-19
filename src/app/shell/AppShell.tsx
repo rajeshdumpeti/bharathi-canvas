@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { to: "/documents", label: "Documents" },
   { to: "/release-notes", label: "Release Notes" },
   { to: "/project-hub", label: "Project Hub" },
+  { to: "/ideas", label: "Innovation Lab" },
 ];
 
 const KEYS = {
