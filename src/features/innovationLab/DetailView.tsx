@@ -1,7 +1,16 @@
+// src/features/innovationLab/DetailView.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiDownload, FiSave, FiTrash2 } from "react-icons/fi";
-import type { Idea, IdeaStatus, IdeaType } from "types/innovationLab";
+import { exportIdeaAsPdf } from "./pdf/exportIdeaPdf";
+import type {
+  Idea,
+  IdeaStatus,
+  IdeaType,
+  TechnicalRequirement,
+  TechReqCategory,
+  StepItem,
+} from "types/innovationLab";
 import {
   getIdeaById,
   upsertIdea,
@@ -9,6 +18,7 @@ import {
   ideaToMarkdown,
 } from "./ideaStorage";
 
+/* --------------------- constants --------------------- */
 const STATUSES: IdeaStatus[] = [
   "Draft",
   "Exploring",
@@ -23,6 +33,16 @@ const TYPES: IdeaType[] = [
   "Tooling",
   "Research",
   "Infra",
+];
+const CATEGORIES: TechReqCategory[] = [
+  "Frontend",
+  "Backend",
+  "ML",
+  "Infra",
+  "Data",
+  "Integration",
+  "Compliance",
+  "Other",
 ];
 
 /* --------------------- small helpers --------------------- */
@@ -44,10 +64,11 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Generic tag editor (string[]) */
 function TagInput({
   value,
   onChange,
-  placeholder = "Add tag and press Enter",
+  placeholder = "Add item and press Enter",
 }: {
   value: string[];
   onChange: (next: string[]) => void;
@@ -63,7 +84,7 @@ function TagInput({
   };
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="mb-2 flex flex-wrap gap-2">
         {value.map((t) => (
           <Chip key={t}>
             {t}
@@ -108,7 +129,7 @@ function NumberChip({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-24 text-sm text-gray-600">{label}</span>
+      <span className="w-28 text-sm text-gray-600">{label}</span>
       <input
         type="range"
         min={0}
@@ -119,7 +140,298 @@ function NumberChip({
         className="flex-1"
       />
       <Chip>{value ?? 0}/5</Chip>
-      {hint ? <span className="text-xs text-gray-400 ml-1">{hint}</span> : null}
+      {hint ? <span className="ml-1 text-xs text-gray-400">{hint}</span> : null}
+    </div>
+  );
+}
+
+/* --------------------- Section editors --------------------- */
+
+function RequirementsEditor({
+  items,
+  onChange,
+}: {
+  items: TechnicalRequirement[] | undefined;
+  onChange: (next: TechnicalRequirement[]) => void;
+}) {
+  const list = items ?? [];
+  const update = (idx: number, patch: Partial<TechnicalRequirement>) => {
+    const next = [...list];
+    next[idx] = { required: true, ...next[idx], ...patch };
+    onChange(next);
+  };
+  const add = () =>
+    onChange([
+      ...list,
+      { name: "", required: true, category: "Backend" as TechReqCategory },
+    ]);
+  const remove = (idx: number) => onChange(list.filter((_, i) => i !== idx));
+
+  return (
+    <div className="space-y-3">
+      {list.length === 0 ? (
+        <p className="text-sm text-gray-500">No items yet.</p>
+      ) : (
+        list.map((r, i) => (
+          <div
+            key={i}
+            className="rounded-md border p-3 grid grid-cols-1 sm:grid-cols-12 gap-2"
+          >
+            <input
+              value={r.name}
+              onChange={(e) => update(i, { name: e.target.value })}
+              placeholder="Requirement (e.g., Postgres, WebSockets)"
+              className="sm:col-span-4 rounded-md border px-3 py-2"
+            />
+            <select
+              value={r.category || "Backend"}
+              onChange={(e) =>
+                update(i, { category: e.target.value as TechReqCategory })
+              }
+              className="sm:col-span-3 rounded-md border px-3 py-2"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+            <label className="sm:col-span-2 inline-flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={r.required !== false}
+                onChange={(e) => update(i, { required: e.target.checked })}
+              />
+              Required
+            </label>
+            <div className="sm:col-span-10">
+              <input
+                value={r.detail ?? ""}
+                onChange={(e) => update(i, { detail: e.target.value })}
+                placeholder="Notes (optional)"
+                className="mt-2 w-full rounded-md border px-3 py-2"
+              />
+            </div>
+            <div className="sm:col-span-2 flex items-end justify-end">
+              <button
+                onClick={() => remove(i)}
+                className="rounded-md border px-3 py-2 text-red-600 hover:bg-red-50"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+      <button
+        onClick={add}
+        className="rounded-md bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
+      >
+        Add requirement
+      </button>
+    </div>
+  );
+}
+
+function BudgetEditor({
+  value,
+  onChange,
+}: {
+  value: Idea["budget"];
+  onChange: (next: NonNullable<Idea["budget"]>) => void;
+}) {
+  const v = value ?? {
+    currency: "₹",
+    freeOptions: [],
+    oneTimeCosts: [],
+    monthlyCosts: [],
+    oneTimeTotal: 0,
+    monthlyTotal: 0,
+    notes: "",
+  };
+  const patch = (p: Partial<typeof v>) => onChange({ ...v, ...p });
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <input
+          value={v.currency ?? ""}
+          onChange={(e) => patch({ currency: e.target.value })}
+          placeholder="Currency (₹ / $ / €)"
+          className="rounded-md border px-3 py-2"
+        />
+        <input
+          type="number"
+          value={v.oneTimeTotal ?? 0}
+          onChange={(e) => patch({ oneTimeTotal: Number(e.target.value) || 0 })}
+          placeholder="One-time total"
+          className="rounded-md border px-3 py-2"
+        />
+        <input
+          type="number"
+          value={v.monthlyTotal ?? 0}
+          onChange={(e) => patch({ monthlyTotal: Number(e.target.value) || 0 })}
+          placeholder="Monthly total"
+          className="rounded-md border px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <h4 className="mb-1 font-medium">Free options</h4>
+        <TagInput
+          value={v.freeOptions ?? []}
+          onChange={(next) => patch({ freeOptions: next })}
+          placeholder="Add a free library/service and press Enter"
+        />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <h4 className="mb-1 font-medium">One-time costs</h4>
+          <TagInput
+            value={v.oneTimeCosts ?? []}
+            onChange={(next) => patch({ oneTimeCosts: next })}
+            placeholder="Add a one-time cost item"
+          />
+        </div>
+        <div>
+          <h4 className="mb-1 font-medium">Monthly costs</h4>
+          <TagInput
+            value={v.monthlyCosts ?? []}
+            onChange={(next) => patch({ monthlyCosts: next })}
+            placeholder="Add a monthly cost item"
+          />
+        </div>
+      </div>
+
+      <textarea
+        rows={3}
+        value={v.notes ?? ""}
+        onChange={(e) => patch({ notes: e.target.value })}
+        placeholder="Budget notes (optional)"
+        className="w-full rounded-md border px-3 py-2"
+      />
+    </div>
+  );
+}
+
+function FeasibilityEditor({
+  value,
+  onChange,
+}: {
+  value: Idea["solo"];
+  onChange: (next: NonNullable<Idea["solo"]>) => void;
+}) {
+  const v = value ?? {
+    difficulty: 0,
+    feasibility: 0,
+    timelineWeeks: 0,
+    pros: [],
+    challenges: [],
+  };
+  const patch = (p: Partial<typeof v>) => onChange({ ...v, ...p });
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <NumberChip
+          label="Difficulty"
+          value={v.difficulty}
+          onChange={(n) => patch({ difficulty: n })}
+          hint="0–5"
+        />
+        <NumberChip
+          label="Feasibility"
+          value={v.feasibility}
+          onChange={(n) => patch({ feasibility: n })}
+          hint="0–5"
+        />
+        <div className="flex items-center gap-2">
+          <span className="w-28 text-sm text-gray-600">Timeline</span>
+          <input
+            type="number"
+            value={v.timelineWeeks ?? 0}
+            onChange={(e) =>
+              patch({ timelineWeeks: Number(e.target.value) || 0 })
+            }
+            className="w-28 rounded-md border px-3 py-2"
+          />
+          <span className="text-sm text-gray-600">weeks</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <h4 className="mb-1 font-medium">Pros</h4>
+          <TagInput
+            value={v.pros ?? []}
+            onChange={(next) => patch({ pros: next })}
+            placeholder="Add a pro and press Enter"
+          />
+        </div>
+        <div>
+          <h4 className="mb-1 font-medium">Challenges</h4>
+          <TagInput
+            value={v.challenges ?? []}
+            onChange={(next) => patch({ challenges: next })}
+            placeholder="Add a challenge and press Enter"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepsEditor({
+  items,
+  onChange,
+}: {
+  items: StepItem[] | undefined;
+  onChange: (next: StepItem[]) => void;
+}) {
+  const list = items ?? [];
+  const add = () =>
+    onChange([
+      ...list,
+      { id: Math.random().toString(36).slice(2, 9), text: "", done: false },
+    ]);
+  const update = (idx: number, patch: Partial<StepItem>) => {
+    const next = [...list];
+    next[idx] = { ...next[idx], ...patch };
+    onChange(next);
+  };
+  const remove = (idx: number) => onChange(list.filter((_, i) => i !== idx));
+
+  return (
+    <div className="space-y-3">
+      {list.length === 0 ? (
+        <p className="text-sm text-gray-500">No steps yet.</p>
+      ) : (
+        list.map((s, i) => (
+          <div
+            key={s.id}
+            className="flex items-center gap-2 rounded-md border p-2"
+          >
+            <input
+              type="checkbox"
+              checked={!!s.done}
+              onChange={(e) => update(i, { done: e.target.checked })}
+            />
+            <input
+              value={s.text}
+              onChange={(e) => update(i, { text: e.target.value })}
+              placeholder={`Step ${i + 1}`}
+              className="flex-1 rounded-md border px-3 py-2"
+            />
+            <button
+              onClick={() => remove(i)}
+              className="rounded-md border px-3 py-2 text-red-600 hover:bg-red-50"
+            >
+              Remove
+            </button>
+          </div>
+        ))
+      )}
+      <button
+        onClick={add}
+        className="rounded-md bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
+      >
+        Add step
+      </button>
     </div>
   );
 }
@@ -139,7 +451,6 @@ const DetailView: React.FC = () => {
     if (!rec) {
       setNotFound(true);
     } else {
-      // ensure defaults for new fields
       setIdea({
         ...rec,
         swot: rec.swot ?? {
@@ -150,6 +461,13 @@ const DetailView: React.FC = () => {
         },
         businessModel: rec.businessModel ?? "",
         targetAudience: rec.targetAudience ?? [],
+        technicalRequirements: rec.technicalRequirements ?? [],
+        budget: rec.budget ?? undefined,
+        solo: rec.solo ?? undefined,
+        recommendation: rec.recommendation ?? "",
+        revenuePotential:
+          typeof rec.revenuePotential === "number" ? rec.revenuePotential : 0,
+        steps: rec.steps ?? [],
       });
     }
   }, [id]);
@@ -182,6 +500,11 @@ const DetailView: React.FC = () => {
     const md = ideaToMarkdown(idea);
     const safe = (idea.title || "idea").replace(/[^\w.-]+/g, "_");
     downloadText(`${safe}.md`, md);
+  };
+
+  const onExportPdf = () => {
+    if (!idea) return;
+    exportIdeaAsPdf(idea);
   };
 
   const onDelete = () => {
@@ -233,6 +556,13 @@ const DetailView: React.FC = () => {
                 <FiDownload /> Export
               </button>
               <button
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-gray-700 hover:bg-white shadow-sm"
+                onClick={onExportPdf}
+                title="Download PDF"
+              >
+                <FiDownload /> Download PDF
+              </button>
+              <button
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-600 px-3 py-2 text-white shadow-sm hover:from-indigo-700 hover:to-blue-700 active:translate-y-[1px]"
                 onClick={save}
               >
@@ -263,9 +593,9 @@ const DetailView: React.FC = () => {
             className="w-full rounded-md border px-3 py-2"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 w-16">Status</span>
+              <span className="w-16 text-sm text-gray-600">Status</span>
               <select
                 value={idea.status}
                 onChange={(e) => patch("status", e.target.value as IdeaStatus)}
@@ -278,7 +608,7 @@ const DetailView: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 w-16">Type</span>
+              <span className="w-16 text-sm text-gray-600">Type</span>
               <select
                 value={idea.ideaType}
                 onChange={(e) => patch("ideaType", e.target.value as IdeaType)}
@@ -290,16 +620,16 @@ const DetailView: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-center gap-2 justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-sm text-gray-600">ICE score</span>
               <Chip>{ice}</Chip>
             </div>
           </div>
         </div>
 
-        {/* Scoring */}
+        {/* Prioritization */}
         <div className="rounded-lg border bg-white p-4 space-y-3">
-          <h3 className="font-semibold mb-1">Prioritization</h3>
+          <h3 className="mb-1 font-semibold">Prioritization</h3>
           <NumberChip
             label="Impact"
             value={idea.impact}
@@ -322,7 +652,7 @@ const DetailView: React.FC = () => {
 
         {/* Tags */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-          <h3 className="font-semibold mb-2">Tags</h3>
+          <h3 className="mb-2 font-semibold">Tags</h3>
           <TagInput
             value={idea.tags || []}
             onChange={(v) => patch("tags", v)}
@@ -330,10 +660,10 @@ const DetailView: React.FC = () => {
           />
         </div>
 
-        {/* Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Problem / Approach / Value / Risks */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-            <h3 className="font-semibold mb-2">Problem</h3>
+            <h3 className="mb-2 font-semibold">Problem</h3>
             <textarea
               rows={5}
               value={idea.problem ?? ""}
@@ -344,7 +674,7 @@ const DetailView: React.FC = () => {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-            <h3 className="font-semibold mb-2">Core approach</h3>
+            <h3 className="mb-2 font-semibold">Core approach</h3>
             <textarea
               rows={5}
               value={idea.coreApproach ?? ""}
@@ -355,7 +685,7 @@ const DetailView: React.FC = () => {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-            <h3 className="font-semibold mb-2">Value / Why now</h3>
+            <h3 className="mb-2 font-semibold">Value / Why now</h3>
             <textarea
               rows={5}
               value={idea.valueNotes ?? ""}
@@ -366,7 +696,7 @@ const DetailView: React.FC = () => {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-            <h3 className="font-semibold mb-2">Risks</h3>
+            <h3 className="mb-2 font-semibold">Risks</h3>
             <textarea
               rows={5}
               value={(idea.risks ?? []).join("\n")}
@@ -385,9 +715,131 @@ const DetailView: React.FC = () => {
           </section>
         </div>
 
-        {/* NEW: Target Audience */}
+        {/* Technical requirements */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-          <h3 className="font-semibold mb-2">Target audience</h3>
+          <h3 className="mb-2 font-semibold">Technical requirements</h3>
+          <RequirementsEditor
+            items={idea.technicalRequirements}
+            onChange={(next) => patch("technicalRequirements", next)}
+          />
+        </div>
+
+        {/* Budget */}
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+          <h3 className="mb-2 font-semibold">Budget breakdown</h3>
+          <BudgetEditor
+            value={idea.budget}
+            onChange={(next) => patch("budget", next)}
+          />
+        </div>
+
+        {/* Solo developer feasibility */}
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+          <h3 className="mb-2 font-semibold">Solo developer feasibility</h3>
+          <FeasibilityEditor
+            value={idea.solo}
+            onChange={(next) => patch("solo", next)}
+          />
+        </div>
+
+        {/* Recommendation + Revenue */}
+        {/* Recommendation + Revenue */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+            <h3 className="mb-2 font-semibold">Recommendation</h3>
+            <textarea
+              rows={6}
+              value={idea.recommendation ?? ""}
+              onChange={(e) => patch("recommendation", e.target.value)}
+              placeholder="Verdict and suggested next step."
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </section>
+
+          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm space-y-3">
+            <h3 className="font-semibold">Revenue potential</h3>
+
+            {/* 1) Quick presets (real-world) */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  label: "Tiny niche",
+                  v: 1,
+                  hint: "Hobby / side-project scale",
+                },
+                {
+                  label: "Long tail",
+                  v: 2,
+                  hint: "Small TAM, many users needed",
+                },
+                { label: "Niche B2B", v: 3, hint: "Clear buyer, modest ACV" },
+                { label: "SMB SaaS", v: 4, hint: "Recurring, scalable" },
+                { label: "Enterprise", v: 5, hint: "High ACV, long sales" },
+                {
+                  label: "Platform/Network",
+                  v: 5,
+                  hint: "Marketplace / API / infra",
+                },
+              ].map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => patch("revenuePotential", p.v as any)}
+                  title={p.hint}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                    (idea.revenuePotential ?? 0) === p.v
+                      ? "bg-emerald-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 2) Slider */}
+            <NumberChip
+              label="Score"
+              value={idea.revenuePotential}
+              onChange={(n) => patch("revenuePotential", n)}
+              hint="0–5"
+            />
+
+            {/* 3) Quick signals */}
+            <div>
+              <h4 className="mb-1 text-sm font-medium text-gray-700">
+                Revenue signals (tags)
+              </h4>
+              <TagInput
+                value={idea.revenueSignals ?? []}
+                onChange={(v) => patch("revenueSignals", v as any)}
+                placeholder="Add signals like 'Usage-based', 'High LTV', 'Low CAC', 'Enterprise', 'Self-serve', 'Marketplace'"
+              />
+            </div>
+
+            {/* 4) Notes */}
+            <textarea
+              rows={3}
+              value={idea.revenueNotes ?? ""}
+              onChange={(e) => patch("revenueNotes", e.target.value as any)}
+              placeholder="Notes: pricing model, ACV, CAC/Payback, LTV, sales motion…"
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </section>
+        </div>
+
+        {/* Steps */}
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+          <h3 className="mb-2 font-semibold">Step-by-step approach</h3>
+          <StepsEditor
+            items={idea.steps}
+            onChange={(next) => patch("steps", next)}
+          />
+        </div>
+
+        {/* Target audience / Business model / SWOT */}
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+          <h3 className="mb-2 font-semibold">Target audience</h3>
           <TagInput
             value={idea.targetAudience ?? []}
             onChange={(v) => patch("targetAudience", v)}
@@ -395,9 +847,8 @@ const DetailView: React.FC = () => {
           />
         </div>
 
-        {/* NEW: Business Model */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-          <h3 className="font-semibold mb-2">Business model</h3>
+          <h3 className="mb-2 font-semibold">Business model</h3>
           <textarea
             rows={6}
             value={idea.businessModel ?? ""}
@@ -407,12 +858,11 @@ const DetailView: React.FC = () => {
           />
         </div>
 
-        {/* NEW: SWOT */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-          <h3 className="font-semibold mb-3">SWOT analysis</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <h3 className="mb-3 font-semibold">SWOT analysis</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <h4 className="font-medium mb-1">Strengths</h4>
+              <h4 className="mb-1 font-medium">Strengths</h4>
               <TagInput
                 value={idea.swot?.strengths ?? []}
                 onChange={(v) =>
@@ -427,7 +877,7 @@ const DetailView: React.FC = () => {
               />
             </div>
             <div>
-              <h4 className="font-medium mb-1">Weaknesses</h4>
+              <h4 className="mb-1 font-medium">Weaknesses</h4>
               <TagInput
                 value={idea.swot?.weaknesses ?? []}
                 onChange={(v) =>
@@ -442,7 +892,7 @@ const DetailView: React.FC = () => {
               />
             </div>
             <div>
-              <h4 className="font-medium mb-1">Opportunities</h4>
+              <h4 className="mb-1 font-medium">Opportunities</h4>
               <TagInput
                 value={idea.swot?.opportunities ?? []}
                 onChange={(v) =>
@@ -457,7 +907,7 @@ const DetailView: React.FC = () => {
               />
             </div>
             <div>
-              <h4 className="font-medium mb-1">Threats</h4>
+              <h4 className="mb-1 font-medium">Threats</h4>
               <TagInput
                 value={idea.swot?.threats ?? []}
                 onChange={(v) =>
@@ -476,7 +926,7 @@ const DetailView: React.FC = () => {
 
         {/* Links */}
         <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-          <h3 className="font-semibold mb-2">Links</h3>
+          <h3 className="mb-2 font-semibold">Links</h3>
           <textarea
             rows={4}
             value={(idea.links ?? [])
@@ -499,11 +949,11 @@ const DetailView: React.FC = () => {
               )
             }
             placeholder="Each line: Label|https://example.com  (Label optional)"
-            className="w-full rounded-md border px-3 py-2 font-mono text-sm"
+            className="w-full Rounded-md border px-3 py-2 font-mono text-sm"
           />
         </div>
-        {/* footer tip */}
-        <p className="text-xs text-gray-400 text-center">
+
+        <p className="text-center text-xs text-gray-400">
           Changes update the draft locally; click <b>Save</b> to persist.
         </p>
       </div>

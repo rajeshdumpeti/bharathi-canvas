@@ -1,7 +1,6 @@
 // features/documents/components/UploadCard.tsx
 import React, { useMemo, useState } from "react";
 import { useDocsStore, DocsState } from "stores/docs.store";
-import type { DocItem } from "types/documents";
 
 const MAX_MB = 5;
 
@@ -44,16 +43,16 @@ const UploadCard: React.FC = () => {
         <label className="block text-xs text-gray-400 mb-1">Project</label>
         <select
           className="w-full rounded-md bg-gray-800 border border-gray-700 px-2 py-1.5 text-sm text-gray-100"
-          value={project || "__new__"}
+          value={project || "Unassigned"}
           onChange={(e) => onPickProject(e.target.value)}
         >
-          {/* <option value="Unassigned">Create Project</option> */}
+          <option value="Unassigned">Unassigned</option>
           {projects.map((p) => (
             <option key={p} value={p}>
               {p}
             </option>
           ))}
-          <option value="__new__">➕ Create Project</option>
+          <option value="__new__">➕ New project…</option>
         </select>
       </div>
 
