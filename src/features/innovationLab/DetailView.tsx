@@ -211,38 +211,40 @@ const DetailView: React.FC = () => {
   if (!idea) return null;
 
   return (
-    <div className="h-full w-full">
-      <div className="mx-auto w-full max-w-5xl p-4 space-y-4">
+    <div className="h-full w-full bg-gradient-to-b from-gray-50 to-white">
+      <div className="mx-auto w-full max-w-5xl p-4 sm:p-6 space-y-5">
         {/* Top bar */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-gray-50"
-              onClick={() => navigate("/ideas")}
-            >
-              <FiArrowLeft /> Back
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-gray-50"
-              onClick={onExportMd}
-              title="Export Markdown"
-            >
-              <FiDownload /> Export
-            </button>
-            <button
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
-              onClick={save}
-            >
-              <FiSave /> Save
-            </button>
-            <button
-              className="inline-flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
-              onClick={onDelete}
-            >
-              <FiTrash2 /> Delete
-            </button>
+        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 mb-1 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-100 px-4 sm:px-6 py-2">
+          <div className="mx-auto max-w-5xl flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-gray-700 hover:bg-white shadow-sm"
+                onClick={() => navigate("/ideas")}
+              >
+                <FiArrowLeft /> Back
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-gray-700 hover:bg-white shadow-sm"
+                onClick={onExportMd}
+                title="Export Markdown"
+              >
+                <FiDownload /> Export
+              </button>
+              <button
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-600 px-3 py-2 text-white shadow-sm hover:from-indigo-700 hover:to-blue-700 active:translate-y-[1px]"
+                onClick={save}
+              >
+                <FiSave /> Save
+              </button>
+              <button
+                className="inline-flex items-center gap-2 rounded-lg bg-rose-50 px-3 py-2 text-rose-700 hover:bg-rose-100 border border-rose-100"
+                onClick={onDelete}
+              >
+                <FiTrash2 /> Delete
+              </button>
+            </div>
           </div>
         </div>
 
@@ -319,7 +321,7 @@ const DetailView: React.FC = () => {
         </div>
 
         {/* Tags */}
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
           <h3 className="font-semibold mb-2">Tags</h3>
           <TagInput
             value={idea.tags || []}
@@ -329,9 +331,8 @@ const DetailView: React.FC = () => {
         </div>
 
         {/* Sections */}
-        {/* Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <section className="rounded-lg border bg-white p-4">
+          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
             <h3 className="font-semibold mb-2">Problem</h3>
             <textarea
               rows={5}
@@ -342,7 +343,7 @@ const DetailView: React.FC = () => {
             />
           </section>
 
-          <section className="rounded-lg border bg-white p-4">
+          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
             <h3 className="font-semibold mb-2">Core approach</h3>
             <textarea
               rows={5}
@@ -353,7 +354,7 @@ const DetailView: React.FC = () => {
             />
           </section>
 
-          <section className="rounded-lg border bg-white p-4">
+          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
             <h3 className="font-semibold mb-2">Value / Why now</h3>
             <textarea
               rows={5}
@@ -364,7 +365,7 @@ const DetailView: React.FC = () => {
             />
           </section>
 
-          <section className="rounded-lg border bg-white p-4">
+          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
             <h3 className="font-semibold mb-2">Risks</h3>
             <textarea
               rows={5}
@@ -385,7 +386,7 @@ const DetailView: React.FC = () => {
         </div>
 
         {/* NEW: Target Audience */}
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
           <h3 className="font-semibold mb-2">Target audience</h3>
           <TagInput
             value={idea.targetAudience ?? []}
@@ -395,7 +396,7 @@ const DetailView: React.FC = () => {
         </div>
 
         {/* NEW: Business Model */}
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
           <h3 className="font-semibold mb-2">Business model</h3>
           <textarea
             rows={6}
@@ -407,7 +408,7 @@ const DetailView: React.FC = () => {
         </div>
 
         {/* NEW: SWOT */}
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
           <h3 className="font-semibold mb-3">SWOT analysis</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -474,7 +475,7 @@ const DetailView: React.FC = () => {
         </div>
 
         {/* Links */}
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
           <h3 className="font-semibold mb-2">Links</h3>
           <textarea
             rows={4}
