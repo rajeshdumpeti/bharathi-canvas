@@ -11,15 +11,8 @@ const STATUSES: IdeaStatus[] = [
   "Planned",
   "Building",
   "Shipped",
-  "Archived",
 ];
-const TYPES: IdeaType[] = [
-  "Product",
-  "Feature",
-  "Tooling",
-  "Research",
-  "Infra",
-];
+const TYPES: IdeaType[] = ["Product", "Feature", "Tooling", "Research"];
 
 const GalleryView: React.FC = () => {
   const navigate = useNavigate();
@@ -199,43 +192,51 @@ const GalleryView: React.FC = () => {
             <span className="text-xs font-medium text-gray-500">Quick:</span>
 
             {/* status pills */}
-            {["Draft", "Planned", "Building", "Shipped"].map((s) => (
-              <button
-                key={`pill-s-${s}`}
-                onClick={() => toggleStatusPill(s as IdeaStatus)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition
+            {["Exploring", "Draft", "Planned", "Building", "Shipped"].map(
+              (s) => (
+                <button
+                  key={`pill-s-${s}`}
+                  onClick={() => toggleStatusPill(s as IdeaStatus)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition
         ${status === s ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-              >
-                {s}
-              </button>
-            ))}
+                >
+                  {s}
+                </button>
+              )
+            )}
 
             <span className="mx-1 h-4 w-px bg-gray-200" />
 
             {/* type pills with color accents */}
-            {(["Product", "Feature", "Tooling"] as IdeaType[]).map((t) => {
-              const tone =
-                t === "Product"
-                  ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                  : t === "Feature"
-                    ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
-                    : "bg-amber-100 text-amber-800 hover:bg-amber-200";
-              const active =
-                t === "Product"
-                  ? "bg-blue-600 text-white"
-                  : t === "Feature"
-                    ? "bg-violet-600 text-white"
-                    : "bg-amber-600 text-white";
-              return (
-                <button
-                  key={`pill-t-${t}`}
-                  onClick={() => toggleTypePill(t)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${type === t ? active : tone}`}
-                >
-                  {t}
-                </button>
-              );
-            })}
+            {(["Product", "Feature", "Tooling", "Research"] as IdeaType[]).map(
+              (t) => {
+                const tone =
+                  t === "Product"
+                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                    : t === "Feature"
+                      ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
+                      : t === "Tooling"
+                        ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                        : "bg-red-100 text-red-800 hover:bg-red-200";
+                const active =
+                  t === "Product"
+                    ? "bg-blue-600 text-white"
+                    : t === "Feature"
+                      ? "bg-violet-600 text-white"
+                      : t === "Tooling"
+                        ? "bg-amber-600 text-white"
+                        : "bg-red-800 text-white";
+                return (
+                  <button
+                    key={`pill-t-${t}`}
+                    onClick={() => toggleTypePill(t)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition ${type === t ? active : tone}`}
+                  >
+                    {t}
+                  </button>
+                );
+              }
+            )}
           </div>
         </div>
 
