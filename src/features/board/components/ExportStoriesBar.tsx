@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { FiDownload } from "react-icons/fi";
 
 type StatusId = "to-do" | "in-progress" | "validation" | "done";
 
@@ -148,10 +149,10 @@ const ExportStoriesBar: React.FC<Props> = ({ project, items }) => {
     <div className="flex items-center gap-2 justify-end ">
       <button
         onClick={() => downloadCSV(stamped.csv, items)}
-        className="px-2 py-1 rounded border bg-white hover:bg-gray-50 text-gray-700"
+        className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-gray-50"
         title="Exports the currently filtered list to CSV"
       >
-        Export CSV
+        <FiDownload /> Export CSV
       </button>
       <button
         onClick={() => downloadPDF(stamped.pdf, projectName, items)}
