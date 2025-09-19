@@ -20,7 +20,7 @@ export type DocsState = {
   setError: (msg: string) => void;
   clearError: () => void;
 
-  addDocuments: (files: File[]) => Promise<void>;
+  addDocuments: (files: File[], project?: string) => Promise<void>;
   deleteDocument: (doc: DocItem) => void;
 };
 
@@ -94,7 +94,7 @@ export const useDocsStore = create<DocsState>()(
       setError: (msg) => set({ error: msg }),
       clearError: () => set({ error: "" }),
 
-      addDocuments: async (files) => {
+      addDocuments: async (files, project) => {
         if (!files?.length) return;
 
         // validation
@@ -113,12 +113,11 @@ export const useDocsStore = create<DocsState>()(
 
         try {
           const results = await Promise.all(files.map(readFileAsResult));
+
           const toAdd: DocItem[] = results.map((res, idx) => {
             const f = files[idx];
             return {
-              id: `${Date.now()}-${idx}-${Math.random()
-                .toString(36)
-                .slice(2, 7)}`,
+              id: `${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`,
               name: f.name,
               type:
                 f.type || (f.name.match(/\.(\w+)$/)?.[1] || "").toLowerCase(),
@@ -126,6 +125,9 @@ export const useDocsStore = create<DocsState>()(
               createdAt: new Date().toISOString(),
               dataURL: res.kind === "data" ? res.dataURL : null,
               text: res.kind === "txt" ? res.text : null,
+
+              // ✅ associate to a project if provided
+              project, // optional in your DocItem type
             };
           });
 
@@ -134,7 +136,6 @@ export const useDocsStore = create<DocsState>()(
 
           set({ items, selectedId, pending: [], error: "" });
         } catch (e) {
-          // eslint-disable-next-line no-console
           console.error(e);
           set({ error: "Failed to read one or more files." });
         }

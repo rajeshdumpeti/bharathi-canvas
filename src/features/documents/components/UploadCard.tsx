@@ -1,143 +1,91 @@
-import React, { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useDocsStore } from "stores/docs.store";
+// features/documents/components/UploadCard.tsx
+import React, { useMemo, useState } from "react";
+import { useDocsStore, DocsState } from "stores/docs.store";
+import type { DocItem } from "types/documents";
 
-type FormData = { files: FileList | null };
-
-const ACCEPT =
-  ".pdf,.txt,.docx,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const MAX_MB = 5;
 
 const UploadCard: React.FC = () => {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [isOver, setIsOver] = useState(false);
+  const addDocuments = useDocsStore((s: DocsState) => s.addDocuments);
+  const items = useDocsStore((s: DocsState) => s.items);
 
-  // ⚠️ Use separate selectors (stable functions), not a single object-returning selector
-  const pending = useDocsStore((s) => s.pending);
-  const error = useDocsStore((s) => s.error);
-  const stageFiles = useDocsStore((s) => s.stageFiles);
-  const clearPending = useDocsStore((s) => s.clearPending);
-  const setError = useDocsStore((s) => s.setError);
-  const clearError = useDocsStore((s) => s.clearError);
-  const addDocuments = useDocsStore((s) => s.addDocuments);
+  const projects = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((d) => {
+      const p = (d as any).project?.trim?.() ?? "";
+      if (p) set.add(p);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [items]);
 
-  const { register, handleSubmit, setValue } = useForm<FormData>({
-    defaultValues: { files: null },
-  });
+  const [project, setProject] = useState<string>("");
 
-  // ✅ Call register("files") exactly ONCE per render
-  const fileReg = register("files");
-
-  const addFiles = (list: FileList | null) => {
-    if (!list?.length) return;
-    clearError();
-    stageFiles(Array.from(list));
-    // keep the RHF value in sync so re-submitting works
-    setValue("files", list);
-  };
-
-  const onDrop: React.DragEventHandler<HTMLDivElement> = (e) => {
-    e.preventDefault();
-    setIsOver(false);
-    addFiles(e.dataTransfer.files);
-  };
-
-  const onConfirm = async () => {
-    if (!pending.length) {
-      setError("Please select at least one file.");
+  const onPickProject = (val: string) => {
+    if (val === "__new__") {
+      const name = window.prompt("New project name");
+      if (!name) return;
+      setProject(name.trim());
       return;
     }
-    await addDocuments(pending);
+    setProject(val === "Unassigned" ? "" : val);
+  };
+
+  const onFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    addDocuments(Array.from(files), project);
   };
 
   return (
-    <form onSubmit={handleSubmit(onConfirm)}>
-      <h3 className="text-sm font-semibold text-gray-100 mb-2">
-        Upload document
-      </h3>
+    <div className="rounded-lg border border-gray-800 bg-gray-900 p-3">
+      <h3 className="text-sm font-semibold text-gray-100">Upload document</h3>
 
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsOver(true);
-        }}
-        onDragLeave={() => setIsOver(false)}
-        onDrop={onDrop}
-        className={`rounded-lg border-2 border-dashed p-4 text-sm bg-gray-800/40 ${
-          isOver ? "border-blue-400 bg-gray-800/70" : "border-gray-700"
-        }`}
-      >
-        <p className="text-gray-300 mb-2">Drag & drop PDF / DOCX / TXT here</p>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="px-3 py-1.5 rounded-md bg-white text-gray-900 text-sm font-medium hover:bg-gray-100"
-          >
-            Browse files
-          </button>
-          <span className="text-gray-400 text-xs">Max 5 MB each</span>
-        </div>
-
-        <input
-          {...fileReg}
-          // ✅ Use the same register result; DO NOT call register(...) again here
-          ref={(el) => {
-            inputRef.current = el;
-            fileReg.ref(el);
-          }}
-          type="file"
-          accept={ACCEPT}
-          multiple
-          onChange={(e) => addFiles(e.target.files)}
-          className="hidden"
-        />
-
-        {pending.length > 0 && (
-          <ul className="mt-3 space-y-1 text-gray-2 00 max-h-28 overflow-auto pr-1">
-            {pending.map((f, i) => (
-              <li
-                key={`${f.name}-${i}`}
-                className="flex justify-between text-xs"
-              >
-                <span className="truncate">{f.name}</span>
-                <span className="text-gray-400 ml-2">
-                  {(f.size / 1024 / 1024).toFixed(2)} MB
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {error && <div className="mt-3 text-xs text-red-400">{error}</div>}
+      {/* Project select */}
+      <div className="mt-2">
+        <label className="block text-xs text-gray-400 mb-1">Project</label>
+        <select
+          className="w-full rounded-md bg-gray-800 border border-gray-700 px-2 py-1.5 text-sm text-gray-100"
+          value={project || "__new__"}
+          onChange={(e) => onPickProject(e.target.value)}
+        >
+          {/* <option value="Unassigned">Create Project</option> */}
+          {projects.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+          <option value="__new__">➕ Create Project</option>
+        </select>
       </div>
 
-      <button
-        type="submit"
-        disabled={pending.length === 0}
-        className={`mt-3 w-full px-3 py-2 rounded-md text-sm font-semibold ${
-          pending.length
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-gray-700 text-gray-400 cursor-not-allowed"
-        }`}
-      >
-        Confirm & Upload
-      </button>
+      <div className="mt-3 grid gap-2">
+        <label className="flex h-24 cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-gray-700 bg-gray-800/50 text-gray-200 hover:border-gray-600">
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+            className="hidden"
+            multiple
+            onChange={(e) => onFiles(e.target.files)}
+          />
+          <div className="text-center">
+            <div className="text-sm">Drag & drop PDF / DOCX / TXT here</div>
+            <div className="text-[11px] text-gray-400">
+              Max {MAX_MB} MB each
+            </div>
+          </div>
+        </label>
 
-      {pending.length > 0 && (
         <button
-          type="button"
-          onClick={() => {
-            clearPending();
-            clearError();
-            if (inputRef.current) inputRef.current.value = "";
-          }}
-          className="mt-2 w-full px-3 py-2 rounded-md text-sm bg-gray-800 text-gray-300 hover:bg-gray-700"
+          onClick={() =>
+            document
+              .querySelector<HTMLInputElement>('input[type="file"]')
+              ?.click?.()
+          }
+          className="inline-flex justify-center rounded-md bg-gray-800 px-3 py-2 text-sm text-gray-100 hover:bg-gray-700"
         >
-          Clear selection
+          Browse files
         </button>
-      )}
-    </form>
+      </div>
+    </div>
   );
 };
 
