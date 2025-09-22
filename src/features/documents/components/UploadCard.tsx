@@ -36,6 +36,30 @@ const UploadCard: React.FC = () => {
 
   return (
     <div className="rounded-lg border border-gray-800 bg-gray-900 p-3">
+      <div className="flex justify-end">
+        <button
+          onClick={() => {
+            window.dispatchEvent(new Event("app:toggleSidebar"));
+          }}
+          className="rounded-lg p-2 transition-colors hover:bg-gray-700 lg:hidden"
+          aria-label="Close sidebar"
+        >
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
       <h3 className="text-sm font-semibold text-gray-100">Upload document</h3>
 
       {/* Project select */}

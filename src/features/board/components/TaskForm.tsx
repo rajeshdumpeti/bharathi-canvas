@@ -24,7 +24,7 @@ export interface TaskDraft {
   architecture: Tech;
 
   storyId?: string; // e.g. "US234567"
-  featureId?: string; // NEW: chosen feature to attach this story/task to
+  featureId?: string; // chosen feature to attach this story/task to
   createdAt?: string; // ISO date "YYYY-MM-DD"
   dueDate?: string; // ISO date "YYYY-MM-DD"
 }
@@ -79,8 +79,7 @@ export default function TaskForm({
       project: task.project,
       status: task.status,
       storyId: task.storyId,
-      // NEW
-      featureId: task.featureId ?? initialFeatureId,
+      featureId: task.featureId ?? initialFeatureId ?? "",
     },
   });
 
@@ -109,26 +108,44 @@ export default function TaskForm({
       </div>
 
       <div className="space-y-5">
-        {/* Row 0: Choose Feature (optional) */}
+        {/* Row 0: Choose Feature (now required if options exist) */}
         <div>
           <label className="block text-gray-700 text-sm font-semibold mb-2">
-            Choose Feature
+            Choose Feature <span className="text-rose-600">*</span>
           </label>
           <select
-            {...register("featureId")}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            {...register("featureId", {
+              // Only require if we actually have features to choose from
+              required: features.length > 0 ? "Feature is required" : false,
+            })}
+            aria-invalid={errors.featureId ? "true" : "false"}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all
+              ${
+                errors.featureId
+                  ? "border-rose-400 focus:ring-rose-500"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
           >
-            <option value="">— Select a feature (optional) —</option>
+            <option value="" disabled>
+              — Select a feature —
+            </option>
             {features.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}
               </option>
             ))}
           </select>
+
+          {errors.featureId && (
+            <p className="mt-1 text-xs text-rose-600">
+              {String(errors.featureId.message)}
+            </p>
+          )}
+
           {features.length === 0 && (
             <p className="mt-1 text-xs text-gray-500">
-              No features found for this project. You can add one in the
-              <span className="font-medium"> Features</span> tab later.
+              No features found for this project. Add one in the
+              <span className="font-medium"> Features</span> tab first.
             </p>
           )}
         </div>
@@ -202,11 +219,16 @@ export default function TaskForm({
               Assignee
             </label>
             <input
-              {...register("assignee")}
+              {...register("assignee", { required: "Assignee is required" })}
               type="text"
               placeholder="Assignee Name"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
+            {errors.assignee && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.assignee.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-gray-700 text-sm font-semibold mb-2">

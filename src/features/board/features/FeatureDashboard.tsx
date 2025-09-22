@@ -409,23 +409,16 @@ const FeatureDashboard: React.FC = () => {
       ) : (
         <div className="grid gap-3 px-4">
           <div className="sticky top-0 z-10 -mx-4 sm:mx-0 bg-gray-50/80 backdrop-blur supports-[backdrop-filter]:bg-gray-50/60 border-b">
-            <div className="px-4 sm:px-0 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="px-4 sm:px-0 py-3 flex flex-row items-center gap-2 justify-between sm:justify-start">
               <h1 className="text-2xl font-bold">Features</h1>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 ml-auto sm:ml-0">
                 <button
                   onClick={addFeature}
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
                 >
                   <FiPlus className="h-4 w-4" />
                   New Feature
                 </button>
-                <Link
-                  to={`/board${projectId ? `?project=${projectId}` : ""}`}
-                  className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
-                  title="Go to main board"
-                >
-                  Board
-                </Link>
               </div>
             </div>
           </div>
