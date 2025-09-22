@@ -6,9 +6,13 @@ import { storage, BOARD_NS } from "packages/storage";
 import Column from "./components/Column";
 import TaskForm from "./components/TaskForm";
 import AddColumnModal from "./components/AddColumnModal";
-import { ensureBacklogFeature, syncTaskToStory } from "./features/storage";
-
 import type { BoardColumn, Project, Task } from "types/board";
+import {
+  deleteStoryById,
+  moveStoryByStoryId,
+  featuresByProject,
+  syncTaskToStory,
+} from "./features/storage";
 
 const DEFAULT_COLS: BoardColumn[] = [
   { id: "to-do", title: "To Do" },
@@ -56,6 +60,22 @@ export default function BoardView() {
     const left = el.offsetLeft - 16;
     parent.scrollTo({ left, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const reload = () => {
+      const next = storage.get<typeof tasks>(BOARD_NS, "tasks", []);
+      setTasks(next);
+    };
+    window.addEventListener("storage", reload);
+    window.addEventListener("board:projectsUpdated", reload as EventListener);
+    return () => {
+      window.removeEventListener("storage", reload);
+      window.removeEventListener(
+        "board:projectsUpdated",
+        reload as EventListener
+      );
+    };
+  }, []);
 
   // ---------- load once ----------
   useEffect(() => {
@@ -161,6 +181,7 @@ export default function BoardView() {
   };
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) =>
     e.preventDefault();
+
   const handleDrop = (
     e: React.DragEvent<HTMLDivElement>,
     newColumnId: string
@@ -175,17 +196,31 @@ export default function BoardView() {
       const willBeDone = newColumnId === "done";
       return {
         ...t,
-        status: newColumnId as Task["status"],
+        status: newColumnId,
         completedAt: willBeDone && !wasDone ? nowISO : (t.completedAt ?? null),
       };
     });
 
     setTasks(updated);
     storage.set(BOARD_NS, "tasks", updated);
+
+    // if mirrored from a Feature story, move it there as well
+    const moved = tasks.find((t) => t.id === taskId);
+    if (moved?.storyId) {
+      const toFeature =
+        newColumnId === "to-do"
+          ? "To Do"
+          : newColumnId === "in-progress"
+            ? "In Progress"
+            : newColumnId === "validation"
+              ? "Validation"
+              : "Done";
+      moveStoryByStoryId(moved.storyId, toFeature);
+    }
   };
 
   // ---------- tasks ----------
-  type DraftTask = Partial<Task> & { id?: string };
+  type DraftTask = Partial<Task> & { id?: string; featureId?: string };
 
   const handleAddTask = (columnId?: string | React.MouseEvent) => {
     if (!selectedProject) return;
@@ -238,7 +273,26 @@ export default function BoardView() {
 
     setTasks(updated);
     storage.set(BOARD_NS, "tasks", updated);
-    // ---- Bridge: mirror into Features ----
+
+    // If user chose a Feature in TaskForm, reflect this task into Features as a Story
+    if (typeof taskData.featureId === "string" && taskData.featureId) {
+      // dataToSave already contains the final task payload (id/title/status/project/createdAt)
+      syncTaskToStory(
+        {
+          id: dataToSave.id,
+          project: dataToSave.project!,
+          storyId: dataToSave.storyId, // keep linkage if present
+          title: dataToSave.title,
+          status: dataToSave.status as any, // "to-do" | "in-progress" | ...
+          assignee: dataToSave.assignee,
+          priority: dataToSave.priority,
+          createdAt: dataToSave.createdAt,
+          completedAt: dataToSave.completedAt ?? null,
+          acceptanceCriteria: dataToSave.acceptanceCriteria,
+        } as any,
+        taskData.featureId
+      );
+    }
 
     setIsTaskModalOpen(false);
     setEditingTask(null);
@@ -250,9 +304,13 @@ export default function BoardView() {
   };
   const handleDeleteTask = () => {
     if (!taskToDeleteId) return;
+    const doomed = tasks.find((t) => t.id === taskToDeleteId);
     const updated = tasks.filter((t) => t.id !== taskToDeleteId);
     setTasks(updated);
     storage.set(BOARD_NS, "tasks", updated);
+    if (doomed?.storyId) {
+      deleteStoryById(doomed.storyId);
+    }
     setIsDeleteTaskModalOpen(false);
     setTaskToDeleteId(null);
   };
@@ -521,6 +579,17 @@ export default function BoardView() {
           }
           onSave={handleSaveTask}
           onCancel={() => setIsTaskModalOpen(false)}
+          // ▼ NEW: feed features for the currently selected project
+          features={
+            selectedProject
+              ? featuresByProject(selectedProject.id).map((f) => ({
+                  id: f.id,
+                  name: f.name,
+                }))
+              : []
+          }
+          // (optional) preselect nothing; or set to a feature id you want as default
+          initialFeatureId={undefined}
         />
       </Modal>
 

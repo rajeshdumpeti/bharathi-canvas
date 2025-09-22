@@ -23,15 +23,21 @@ export interface TaskDraft {
   priority: Priority;
   architecture: Tech;
 
-  storyId?: string; // e.g. "US234567" (may be undefined for new task until save)
+  storyId?: string; // e.g. "US234567"
+  featureId?: string; // NEW: chosen feature to attach this story/task to
   createdAt?: string; // ISO date "YYYY-MM-DD"
   dueDate?: string; // ISO date "YYYY-MM-DD"
 }
 
 export interface TaskFormProps {
-  task: Partial<TaskDraft>; // you pass a prefilled object in BoardView
+  task: Partial<TaskDraft>;
   onSave: (task: TaskDraft) => void;
   onCancel: () => void;
+
+  /** Optional list of features to allow choosing where this story belongs */
+  features?: { id: string; name: string }[];
+  /** Optional initial feature id to preselect */
+  initialFeatureId?: string;
 }
 
 function toISODate(d: Date) {
@@ -47,7 +53,13 @@ function fmtHuman(d?: string) {
   }
 }
 
-export default function TaskForm({ task, onSave, onCancel }: TaskFormProps) {
+export default function TaskForm({
+  task,
+  onSave,
+  onCancel,
+  features = [],
+  initialFeatureId,
+}: TaskFormProps) {
   const {
     register,
     handleSubmit,
@@ -67,6 +79,8 @@ export default function TaskForm({ task, onSave, onCancel }: TaskFormProps) {
       project: task.project,
       status: task.status,
       storyId: task.storyId,
+      // NEW
+      featureId: task.featureId ?? initialFeatureId,
     },
   });
 
@@ -78,6 +92,7 @@ export default function TaskForm({ task, onSave, onCancel }: TaskFormProps) {
       project: task.project ?? data.project,
       status: task.status ?? data.status,
       storyId: task.storyId ?? data.storyId, // BoardView may assign on save if missing
+      featureId: data.featureId ?? task.featureId, // pass chosen feature up
     });
   };
 
@@ -94,6 +109,30 @@ export default function TaskForm({ task, onSave, onCancel }: TaskFormProps) {
       </div>
 
       <div className="space-y-5">
+        {/* Row 0: Choose Feature (optional) */}
+        <div>
+          <label className="block text-gray-700 text-sm font-semibold mb-2">
+            Choose Feature
+          </label>
+          <select
+            {...register("featureId")}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+            <option value="">— Select a feature (optional) —</option>
+            {features.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          {features.length === 0 && (
+            <p className="mt-1 text-xs text-gray-500">
+              No features found for this project. You can add one in the
+              <span className="font-medium"> Features</span> tab later.
+            </p>
+          )}
+        </div>
+
         {/* Row 1: Title + Technology */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

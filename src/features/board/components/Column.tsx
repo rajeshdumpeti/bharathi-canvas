@@ -30,29 +30,27 @@ const Column: React.FC<ColumnProps> = ({
 
         <div className="flex items-center gap-2">
           {/* Add task only on To Do (as you had) */}
-          {title === "To Do" && (
-            <button
-              onClick={() => onAddTask(id)}
-              aria-label={`Add task to ${title}`}
-              className="p-1.5 rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 transition-colors"
-              type="button"
+          <button
+            onClick={() => onAddTask(id)}
+            aria-label={`Add task to ${title}`}
+            className="p-1.5 rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 transition-colors"
+            type="button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
-          )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
 
           {/* Delete column icon */}
           <button

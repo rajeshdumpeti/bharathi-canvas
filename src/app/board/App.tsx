@@ -4,12 +4,11 @@ import { Routes, Route, useSearchParams, Navigate } from "react-router-dom";
 import Sidebar from "features/board/components/Sidebar";
 import BoardView from "features/board/BoardView";
 import FeatureDashboard from "features/board/features/FeatureDashboard";
-import FeatureBoard from "features/board/features/FeatureBoard";
+// import FeatureBoard from "features/board/features/FeatureBoard";
 
 import type { SidebarProps } from "types/sidebar";
 import { storage, BOARD_NS } from "packages/storage";
 import { Project } from "types/board";
-import StoryDetail from "features/board/StoryDetail";
 import StoriesView from "features/board/StoriesView";
 
 /**
@@ -147,7 +146,7 @@ export default function BoardApp() {
         <Routes>
           <Route index element={<BoardView />} />
           <Route path="features" element={<FeatureDashboard />} />
-          <Route path="features/:featureId" element={<FeatureBoard />} />
+          {/* <Route path="features/:featureId" element={<FeatureBoard />} /> */}
           <Route path="stories" element={<StoriesView />} />
           {/* <Route path="story/:storyId" element={<StoryDetail />} /> */}
 
