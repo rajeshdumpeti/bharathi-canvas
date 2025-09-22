@@ -1,5 +1,5 @@
-// src/features/board/components/Sidebar.tsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { SidebarProps } from "types/sidebar";
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -7,16 +7,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   selectedProject,
   onSelectProject,
   onAddProject,
-  isSidebarOpen,
   onToggleSidebar,
   tasks,
   onConfirmDeleteProject,
-  onOpenDocuments,
 }) => {
   const [newProjectName, setNewProjectName] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // Are we currently on the Features view?
+  const isFeatures = location.pathname.startsWith("/board/features");
+
+  // Project context (used to keep the same project when switching views)
+
+  // Metrics (unchanged)
   const projectTasks = tasks.filter(
-    (task) => selectedProject && task.project === selectedProject.id
+    (t) => selectedProject && t.project === selectedProject.id
   );
   const todoCount = projectTasks.filter((t) => t.status === "to-do").length;
   const inProgressCount = projectTasks.filter(
@@ -26,12 +32,16 @@ const Sidebar: React.FC<SidebarProps> = ({
   const totalTasks = projectTasks.length;
   const progressPercentage =
     totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0;
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const currentDate = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    []
+  );
 
   const handleAddProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,69 +51,91 @@ const Sidebar: React.FC<SidebarProps> = ({
       (p) => p.name.trim().toLowerCase() === name.toLowerCase()
     );
     if (exists) return;
-
     onAddProject(name);
     setNewProjectName("");
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 transition-all duration-300 pt-2">
+    <div className="flex h-full min-h-0 flex-col pt-2 transition-all duration-300">
       {/* Sidebar Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold">Projects</h3>
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 lg:hidden rounded-lg hover:bg-gray-700 transition-colors"
-          aria-label="Close sidebar"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+      <div className="mb-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-xl font-bold">Projects</h3>
+          <button
+            onClick={onToggleSidebar}
+            className="rounded-lg p-2 transition-colors hover:bg-gray-700 lg:hidden"
+            aria-label="Close sidebar"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Views: Board | Features */}
+        <div className="mb-4 inline-flex rounded-lg bg-gray-800/70 p-1">
+          <button
+            className={`px-3 py-1 rounded ${!isFeatures ? "bg-blue-600 text-white" : "bg-gray-700"}`}
+            onClick={() => {
+              const pid = selectedProject?.id || "";
+              navigate(`/board${pid ? `?project=${pid}` : ""}`);
+            }}
+          >
+            Board
+          </button>
+
+          <button
+            className={`px-3 py-1 rounded ${isFeatures ? "bg-blue-600 text-white" : "bg-gray-700"}`}
+            onClick={() => {
+              const pid = selectedProject?.id || "";
+              navigate(`/board/features${pid ? `?project=${pid}` : ""}`);
+            }}
+          >
+            Features
+          </button>
+        </div>
       </div>
 
       {/* Project List */}
-      <ul className="flex-1 space-y-2 mb-6 overflow-y-auto max-h-full min-h-0 pr-2 custom-scrollbar">
+      <ul className="custom-scrollbar mb-6 max-h-full min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
         {projects.length === 0 ? (
-          <li className="p-2 rounded-lg bg-gray-800/70 text-gray-300 text-sm select-none">
+          <li className="select-none rounded-lg bg-gray-800/70 p-2 text-sm text-gray-300">
             Your project goes here
           </li>
         ) : (
           projects.map((project) => (
             <li
               key={project.id}
-              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+              className={`flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors ${
                 selectedProject?.id === project.id
                   ? "bg-blue-600 text-white"
                   : "hover:bg-gray-700"
               }`}
+              onClick={() => {
+                onSelectProject(project);
+                const base = isFeatures ? "/board/features" : "/board";
+                navigate(`${base}?project=${project.id}`);
+                onToggleSidebar();
+              }}
             >
-              <span
-                onClick={() => {
-                  onSelectProject(project);
-                  onToggleSidebar();
-                }}
-                className="flex-1 pr-2"
-              >
-                {project.name}
-              </span>
+              <span className="flex-1 pr-2">{project.name}</span>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onConfirmDeleteProject(project);
                 }}
-                className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                className="rounded-full p-1 text-gray-400 transition-colors hover:text-red-500"
                 title="Delete Project"
                 aria-label={`Delete project ${project.name}`}
               >
@@ -134,29 +166,28 @@ const Sidebar: React.FC<SidebarProps> = ({
           value={newProjectName}
           onChange={(e) => setNewProjectName(e.target.value)}
           placeholder="New project name"
-          className="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg bg-gray-700 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
           disabled={!newProjectName.trim()}
-          className={`w-full py-2 rounded-lg font-semibold transition
-            ${
-              newProjectName.trim()
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
-                : "bg-gray-600 text-gray-300 cursor-not-allowed"
-            }`}
+          className={`w-full rounded-lg py-2 font-semibold transition ${
+            newProjectName.trim()
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "cursor-not-allowed bg-gray-600 text-gray-300"
+          }`}
         >
           Add
         </button>
       </form>
 
       {/* Dashboard Overview */}
-      <div className="p-4 bg-gray-800 rounded-lg">
-        <h4 className="font-semibold mb-2">Dashboard</h4>
-        <p className="text-sm mb-1">
+      <div className="rounded-lg bg-gray-800 p-4">
+        <h4 className="mb-2 font-semibold">Dashboard</h4>
+        <p className="mb-1 text-sm">
           Total Tasks: <span className="font-bold">{totalTasks}</span>
         </p>
-        <ul className="text-xs space-y-1 mb-2">
+        <ul className="mb-2 space-y-1 text-xs">
           <li>To Do: {todoCount}</li>
           <li>In Progress: {inProgressCount}</li>
           <li>Done: {doneCount}</li>
@@ -164,14 +195,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         <p className="text-sm font-semibold">
           Progress: {progressPercentage}% Done
         </p>
-        <div className="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+        <div className="mt-2 h-2.5 w-full rounded-full bg-gray-700">
           <div
-            className="bg-blue-600 h-2.5 rounded-full"
+            className="h-2.5 rounded-full bg-blue-600"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
-
-        <p className="text-xs text-gray-400 mt-4">{currentDate}</p>
+        <p className="mt-4 text-xs text-gray-400">{currentDate}</p>
       </div>
     </div>
   );

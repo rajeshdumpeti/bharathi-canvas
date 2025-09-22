@@ -32,7 +32,9 @@ const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-3">
         {showHamburger && (
           <button
-            onClick={onToggleSidebar}
+            onClick={() => {
+              window.dispatchEvent(new Event("app:toggleSidebar"));
+            }}
             className="lg:hidden p-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Toggle sidebar"
             type="button"
@@ -163,7 +165,10 @@ const Header: React.FC<HeaderProps> = ({
       {/* Mobile panel */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileOpen(false)}
+          />
           <div className="absolute top-0 right-0 w-72 h-full bg-gray-900 border-l border-gray-800 p-4 space-y-2">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">

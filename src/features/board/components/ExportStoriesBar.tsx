@@ -149,7 +149,7 @@ const ExportStoriesBar: React.FC<Props> = ({ project, items }) => {
     <div className="flex items-center gap-2 justify-end ">
       <button
         onClick={() => downloadCSV(stamped.csv, items)}
-        className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-gray-50"
+        className="rounded-md border px-2 py-1 text-sm hover:bg-gray-50"
         title="Exports the currently filtered list to CSV"
       >
         <FiDownload /> Export CSV

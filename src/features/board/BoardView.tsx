@@ -1,11 +1,12 @@
+// src/features/board/BoardView.tsx
 import React, { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Modal, EmptyState } from "packages/ui";
-import TaskForm from "./components/TaskForm"; // JS or TSX is fine
-import AddColumnModal from "./components/AddColumnModal";
-import Column from "./components/Column";
-import Sidebar from "./components/Sidebar";
 import { storage, BOARD_NS } from "packages/storage";
-import { Link } from "react-router-dom";
+import Column from "./components/Column";
+import TaskForm from "./components/TaskForm";
+import AddColumnModal from "./components/AddColumnModal";
+import { ensureBacklogFeature, syncTaskToStory } from "./features/storage";
 
 import type { BoardColumn, Project, Task } from "types/board";
 
@@ -16,32 +17,34 @@ const DEFAULT_COLS: BoardColumn[] = [
   { id: "done", title: "Done" },
 ];
 
-const BoardView: React.FC = () => {
+export default function BoardView() {
+  const [search] = useSearchParams();
+
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [columns, setColumns] = useState<BoardColumn[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [columns, setColumns] = useState<BoardColumn[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // UI state
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
   const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);
-  const [taskToDeleteId, setTaskToDeleteId] = useState<string | null>(null);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [columnToDeleteId, setColumnToDeleteId] = useState<string | null>(null);
   const [isDeleteColumnModalOpen, setIsDeleteColumnModalOpen] = useState(false);
   const [isProjectDeleteModalOpen, setIsProjectDeleteModalOpen] =
     useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
+  const [taskToDeleteId, setTaskToDeleteId] = useState<string | null>(null);
+  const [columnToDeleteId, setColumnToDeleteId] = useState<string | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // rail helpers
   const columnsRef = useRef<HTMLDivElement | null>(null);
   const columnRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
   const setColumnRef = (id: string) => (el: HTMLDivElement | null) => {
     columnRefs.current[id] = el;
   };
-  // tabs/rail helpers
   const scrollColumnsBy = (delta: number) => {
     if (!columnsRef.current) return;
     columnsRef.current.scrollBy({ left: delta, behavior: "smooth" });
@@ -54,118 +57,102 @@ const BoardView: React.FC = () => {
     parent.scrollTo({ left, behavior: "smooth" });
   };
 
-  // initial load
+  // ---------- load once ----------
   useEffect(() => {
     setIsLoading(true);
     try {
       const savedProjects = storage.get<Project[]>(BOARD_NS, "projects", []);
       const savedTasks = storage.get<Task[]>(BOARD_NS, "tasks", []);
-      const storedSelectedId = storage.get<string | null>(
-        BOARD_NS,
-        "selectedProjectId",
-        null
-      );
 
-      // normalize invalid statuses to "to-do"
-      const validStatuses = new Set([
-        "to-do",
-        "in-progress",
-        "validation",
-        "done",
-      ]);
-      const fixedTasks: Task[] = (savedTasks || []).map((t) => {
-        const status =
-          typeof t.status === "string" && validStatuses.has(t.status)
-            ? t.status
-            : "to-do";
-        return { ...t, status };
-      });
-
-      setTasks(fixedTasks);
-      if (JSON.stringify(fixedTasks) !== JSON.stringify(savedTasks)) {
-        storage.set(BOARD_NS, "tasks", fixedTasks);
-      }
+      // normalize statuses
+      const ok = new Set(["to-do", "in-progress", "validation", "done"]);
+      const fixed = (savedTasks || []).map((t) => ({
+        ...t,
+        status: ok.has(String(t.status))
+          ? (t.status as Task["status"])
+          : "to-do",
+      }));
 
       setProjects(savedProjects);
-
-      if (savedProjects.length) {
-        const selected =
-          savedProjects.find((p) => p.id === storedSelectedId) || null;
-        setSelectedProject(selected);
-        setColumns(selected?.columns || []);
-      } else {
-        setSelectedProject(null);
-        setColumns([]);
+      setTasks(fixed);
+      if (JSON.stringify(savedTasks) !== JSON.stringify(fixed)) {
+        storage.set(BOARD_NS, "tasks", fixed);
       }
-    } catch (e) {
-      console.error("Error loading board data:", e);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // mobile sidebar toggle (until we swap to Zustand UI store)
+  // ---------- react to sidebar/storage changes ----------
   useEffect(() => {
-    const handler = () => setIsSidebarOpen((s) => !s);
-    window.addEventListener("app:toggleSidebar", handler as EventListener);
-    return () =>
-      window.removeEventListener("app:toggleSidebar", handler as EventListener);
+    const sync = () => {
+      const latestProjects = storage.get<Project[]>(BOARD_NS, "projects", []);
+      const latestTasks = storage.get<Task[]>(BOARD_NS, "tasks", []);
+      setProjects(latestProjects);
+      setTasks(latestTasks);
+    };
+    window.addEventListener("storage", sync);
+    window.addEventListener("board:projectsUpdated", sync as EventListener);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener(
+        "board:projectsUpdated",
+        sync as EventListener
+      );
+    };
   }, []);
 
-  // project CRUD
-  const handleAddProject = (projectName: string) => {
-    if (!projectName) return;
-    const newProject: Project = {
-      id: `${projectName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
-      name: projectName,
-      columns: [...DEFAULT_COLS],
-    };
-    const updated = [...projects, newProject];
-    setProjects(updated);
-    storage.set(BOARD_NS, "projects", updated);
+  // ---------- derive selected project from ?project= or stored id ----------
+  useEffect(() => {
+    const qid = search.get("project") || null;
+    const storedId = storage.get<string | null>(
+      BOARD_NS,
+      "selectedProjectId",
+      null
+    );
+    const pickId = qid ?? storedId;
 
-    setSelectedProject(newProject);
-    setColumns([...DEFAULT_COLS]);
-    storage.set(BOARD_NS, "selectedProjectId", newProject.id);
-  };
+    const next = projects.find((p) => p.id === pickId) || projects[0] || null;
+    setSelectedProject(next);
+    setColumns(next?.columns || []);
 
-  const handleSelectProject = (project: Project | null) => {
-    setSelectedProject(project);
-    setColumns(project?.columns ?? DEFAULT_COLS);
-    project?.id
-      ? storage.set(BOARD_NS, "selectedProjectId", project.id)
-      : storage.remove(BOARD_NS, "selectedProjectId");
-  };
+    if (next) {
+      storage.set(BOARD_NS, "selectedProjectId", next.id);
+    } else {
+      storage.remove(BOARD_NS, "selectedProjectId");
+    }
+  }, [search, projects]);
 
+  // ---------- project helpers (used by delete project modal) ----------
   const confirmDeleteProject = (project: Project) => {
     setProjectToDelete(project);
     setIsProjectDeleteModalOpen(true);
   };
-
   const handleDeleteProject = () => {
     if (!projectToDelete) return;
-    const updatedProjects = projects.filter((p) => p.id !== projectToDelete.id);
-    const updatedTasks = tasks.filter((t) => t.project !== projectToDelete.id);
+    const nextProjects = projects.filter((p) => p.id !== projectToDelete.id);
+    const nextTasks = tasks.filter((t) => t.project !== projectToDelete.id);
 
-    setProjects(updatedProjects);
-    setTasks(updatedTasks);
-    storage.set(BOARD_NS, "projects", updatedProjects);
-    storage.set(BOARD_NS, "tasks", updatedTasks);
+    setProjects(nextProjects);
+    setTasks(nextTasks);
+    storage.set(BOARD_NS, "projects", nextProjects);
+    storage.set(BOARD_NS, "tasks", nextTasks);
 
-    const nextSelected = updatedProjects[0] || null;
-    setSelectedProject(nextSelected);
-    setColumns(nextSelected?.columns || DEFAULT_COLS);
-    if (nextSelected) {
-      storage.set(BOARD_NS, "selectedProjectId", nextSelected.id);
-    } else {
-      storage.remove(BOARD_NS, "selectedProjectId");
-    }
+    const nextSel = nextProjects[0] || null;
+    setSelectedProject(nextSel);
+    setColumns(nextSel?.columns || DEFAULT_COLS);
+
+    if (nextSel) storage.set(BOARD_NS, "selectedProjectId", nextSel.id);
+    else storage.remove(BOARD_NS, "selectedProjectId");
 
     setIsProjectDeleteModalOpen(false);
     setProjectToDelete(null);
+
+    // let the sidebar refresh
+    window.dispatchEvent(new Event("board:projectsUpdated"));
   };
 
-  // drag/drop
+  // ---------- DnD ----------
   const handleDragStart = (
     e: React.DragEvent<HTMLDivElement>,
     taskId: string
@@ -174,7 +161,6 @@ const BoardView: React.FC = () => {
   };
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) =>
     e.preventDefault();
-
   const handleDrop = (
     e: React.DragEvent<HTMLDivElement>,
     newColumnId: string
@@ -189,7 +175,7 @@ const BoardView: React.FC = () => {
       const willBeDone = newColumnId === "done";
       return {
         ...t,
-        status: newColumnId,
+        status: newColumnId as Task["status"],
         completedAt: willBeDone && !wasDone ? nowISO : (t.completedAt ?? null),
       };
     });
@@ -198,7 +184,9 @@ const BoardView: React.FC = () => {
     storage.set(BOARD_NS, "tasks", updated);
   };
 
-  // create/edit/delete
+  // ---------- tasks ----------
+  type DraftTask = Partial<Task> & { id?: string };
+
   const handleAddTask = (columnId?: string | React.MouseEvent) => {
     if (!selectedProject) return;
     const isEventLike =
@@ -212,8 +200,8 @@ const BoardView: React.FC = () => {
         : "to-do";
 
     setEditingTask({
-      id: `temp-${Date.now()}`, // temporary until save
-      status,
+      id: `temp-${Date.now()}`,
+      status: status as Task["status"],
       title: "",
       description: "",
       assignee: "",
@@ -230,11 +218,36 @@ const BoardView: React.FC = () => {
     setIsTaskModalOpen(true);
   };
 
+  const handleSaveTask = (taskData: DraftTask) => {
+    if (!selectedProject) return;
+
+    const isNew = !taskData.id || taskData.id.startsWith("temp-");
+    const dataToSave: Task = {
+      ...(taskData as Task),
+      id: isNew ? `task-${Date.now()}` : (taskData.id as string),
+      project: selectedProject.id,
+      storyId:
+        taskData.storyId ||
+        (isNew ? nextStoryId(selectedProject.id) : taskData.storyId),
+      acceptanceCriteria: taskData.acceptanceCriteria || "",
+    };
+
+    const updated = isNew
+      ? [...tasks, dataToSave]
+      : tasks.map((t) => (t.id === dataToSave.id ? { ...dataToSave } : t));
+
+    setTasks(updated);
+    storage.set(BOARD_NS, "tasks", updated);
+    // ---- Bridge: mirror into Features ----
+
+    setIsTaskModalOpen(false);
+    setEditingTask(null);
+  };
+
   const confirmDeleteTask = (taskId: string) => {
     setTaskToDeleteId(taskId);
     setIsDeleteTaskModalOpen(true);
   };
-
   const handleDeleteTask = () => {
     if (!taskToDeleteId) return;
     const updated = tasks.filter((t) => t.id !== taskToDeleteId);
@@ -244,38 +257,7 @@ const BoardView: React.FC = () => {
     setTaskToDeleteId(null);
   };
 
-  type DraftTask = Partial<Task> & { id?: string };
-
-  const handleSaveTask = (taskData: DraftTask) => {
-    const isNew = !taskData.id || taskData.id.startsWith("temp-");
-    const dataToSave: Task = {
-      ...(taskData as Task),
-      id: isNew ? `task-${Date.now()}` : (taskData.id as string),
-      project: selectedProject?.id || (taskData.project as string),
-      storyId:
-        taskData.storyId ||
-        (isNew && selectedProject
-          ? nextStoryId(selectedProject.id)
-          : taskData.storyId),
-      acceptanceCriteria: taskData.acceptanceCriteria || "",
-    };
-
-    let updated: Task[];
-    if (editingTask && !isNew) {
-      updated = tasks.map((t) =>
-        t.id === dataToSave.id ? { ...dataToSave } : t
-      );
-    } else {
-      updated = [...tasks, dataToSave];
-    }
-
-    setTasks(updated);
-    storage.set(BOARD_NS, "tasks", updated);
-    setIsTaskModalOpen(false);
-    setEditingTask(null);
-  };
-
-  // columns
+  // ---------- columns ----------
   const confirmDeleteColumn = (columnId: string) => {
     setColumnToDeleteId(columnId);
     setIsDeleteColumnModalOpen(true);
@@ -283,7 +265,10 @@ const BoardView: React.FC = () => {
 
   const handleDeleteColumn = () => {
     if (!selectedProject || !columnToDeleteId) return;
-    const updatedCols = columns.filter((c) => c.id !== columnToDeleteId);
+
+    const updatedCols = (columns || []).filter(
+      (c) => c.id !== columnToDeleteId
+    );
     const updatedTasks = tasks.filter((t) => t.status !== columnToDeleteId);
 
     setColumns(updatedCols);
@@ -299,6 +284,9 @@ const BoardView: React.FC = () => {
 
     setIsDeleteColumnModalOpen(false);
     setColumnToDeleteId(null);
+
+    // let the sidebar refresh
+    window.dispatchEvent(new Event("board:projectsUpdated"));
   };
 
   const handleAddColumn = (newTitle: string) => {
@@ -314,13 +302,11 @@ const BoardView: React.FC = () => {
     );
     setProjects(updatedProjects);
     storage.set(BOARD_NS, "projects", updatedProjects);
-    setSelectedProject((prev) =>
-      prev && prev.id === selectedProject.id
-        ? { ...prev, columns: newColumns }
-        : prev
-    );
 
     setIsColumnModalOpen(false);
+
+    // let the sidebar refresh
+    window.dispatchEvent(new Event("board:projectsUpdated"));
   };
 
   // Per-project Story ID sequence (starts at 234567)
@@ -333,43 +319,11 @@ const BoardView: React.FC = () => {
     return id;
   };
 
+  // ---------- render ----------
   return (
     <div className="h-full w-full flex flex-col bg-gray-50 font-sans text-gray-800">
-      {/* Middle row: sidebar + content */}
       <div className="flex-1 min-h-0 w-full">
         <div className="relative h-full w-full flex overflow-hidden">
-          {/* backdrop */}
-          <div
-            onClick={() => setIsSidebarOpen(false)}
-            className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300 ${
-              isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-          />
-          {/* Sidebar */}
-          <aside
-            aria-label="Documents sidebar"
-            className={`
-              fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-900 text-white
-              border-r border-gray-800 overflow-y-auto shrink-0
-              transform transition-transform duration-300 ease-in-out
-              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-              lg:translate-x-0 lg:transform-none
-            `}
-          >
-            <div className="h-full p-4">
-              <Sidebar
-                projects={projects}
-                selectedProject={selectedProject}
-                onSelectProject={handleSelectProject}
-                onAddProject={handleAddProject}
-                onConfirmDeleteProject={confirmDeleteProject}
-                isSidebarOpen={isSidebarOpen}
-                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-                tasks={tasks}
-              />
-            </div>
-          </aside>
-
           {/* Right content */}
           <main className="flex-1 min-w-0 h-full overflow-auto">
             <div className="h-full flex flex-col">
@@ -377,24 +331,21 @@ const BoardView: React.FC = () => {
               <div className="bg-white border-b">
                 {selectedProject && (
                   <div className="mx-auto w-full max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-2 gap-3">
-                    {" "}
                     <div className="flex w-full justify-between sm:justify-start sm:gap-2">
                       <h1 className="text-2xl font-bold text-gray-900">
-                        {selectedProject
-                          ? `${selectedProject.name} Project`
-                          : "Welcome"}
+                        {`${selectedProject.name} Project`}
                       </h1>
                       <button
                         onClick={() => handleAddTask("to-do")}
-                        className="px-4 py-2 rounded-lg shadow-md font-semibold bg-blue-500 text-white hover:bg-blue-600"
+                        className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
                       >
                         Create Story
                       </button>
                     </div>
                     <div className="flex w-full justify-between sm:justify-end sm:gap-2">
                       <Link
-                        to="/board/stories"
-                        className="px-4 py-2 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                        to="stories"
+                        className="rounded-md border px-2 py-1 text-sm hover:bg-gray-50"
                         title="View all stories"
                       >
                         US LookUp
@@ -404,27 +355,23 @@ const BoardView: React.FC = () => {
                           selectedProject && setIsColumnModalOpen(true)
                         }
                         disabled={!selectedProject}
-                        className={`px-2 py-2 rounded-lg shadow-md font-semibold flex items-center ${
+                        className={`rounded-md border px-2 py-1 text-sm ${
                           selectedProject
                             ? "bg-green-500 text-white hover:bg-green-600"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
                         }`}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 mr-2"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
                         Add Column
+                      </button>
+                      <button
+                        onClick={() =>
+                          selectedProject &&
+                          confirmDeleteProject(selectedProject)
+                        }
+                        className="rounded-md border px-2 py-1 text-sm text-rose-700 hover:bg-rose-50"
+                        title="Delete this project"
+                      >
+                        Delete Project
                       </button>
                     </div>
                   </div>
@@ -441,16 +388,14 @@ const BoardView: React.FC = () => {
                   title="Create your first project"
                   description={
                     <>
-                      Use the{" "}
-                      <span className="font-medium">“New project name”</span>{" "}
-                      field in the left sidebar to add a project. Once created,
-                      we’ll auto-add the columns <em>To Do</em>,{" "}
-                      <em>In Progress</em>, and <em>Done</em>.
+                      Create a project in the left sidebar. We’ll add default
+                      columns (<em>To Do</em>, <em>In Progress</em>,{" "}
+                      <em>Validation</em>, <em>Done</em>).
                     </>
                   }
                   bullets={[
-                    "Your projects appear in the left panel.",
-                    "Click a project to open its board here.",
+                    "Projects live in the left panel.",
+                    "Click a project to open its board.",
                     "Use “Add Column” to customize the workflow.",
                   ]}
                 />
@@ -462,9 +407,7 @@ const BoardView: React.FC = () => {
                       <button
                         aria-label="Scroll left"
                         onClick={() => scrollColumnsBy(-320)}
-                        className={`${
-                          columns.length > 1 ? "flex" : "hidden"
-                        } h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
+                        className={`${columns.length > 1 ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -497,9 +440,7 @@ const BoardView: React.FC = () => {
                       <button
                         aria-label="Scroll right"
                         onClick={() => scrollColumnsBy(320)}
-                        className={`${
-                          columns.length > 1 ? "flex" : "hidden"
-                        } h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
+                        className={`${columns.length > 1 ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white hover:bg-gray-50`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -607,13 +548,13 @@ const BoardView: React.FC = () => {
         <div className="flex justify-between space-x-4 mt-6">
           <button
             onClick={() => setIsDeleteTaskModalOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={handleDeleteTask}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             Delete
           </button>
@@ -633,13 +574,13 @@ const BoardView: React.FC = () => {
         <div className="flex justify-between space-x-4 mt-6">
           <button
             onClick={() => setIsDeleteColumnModalOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={handleDeleteColumn}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             Delete
           </button>
@@ -659,13 +600,13 @@ const BoardView: React.FC = () => {
         <div className="flex justify-between space-x-4 mt-6">
           <button
             onClick={() => setIsProjectDeleteModalOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={handleDeleteProject}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             Delete
           </button>
@@ -673,6 +614,4 @@ const BoardView: React.FC = () => {
       </Modal>
     </div>
   );
-};
-
-export default BoardView;
+}

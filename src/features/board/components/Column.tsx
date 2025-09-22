@@ -1,7 +1,7 @@
-// src/features/board/components/Column.tsx
 import React from "react";
 import TaskCard from "./TaskCard";
 import type { ColumnProps } from "../../../types/board";
+import { FiTrash2 } from "react-icons/fi";
 
 const Column: React.FC<ColumnProps> = ({
   title,
@@ -28,12 +28,14 @@ const Column: React.FC<ColumnProps> = ({
           {title} ({columnTasks.length})
         </h2>
 
-        <div className="flex space-x-2">
-          {title === "To Do" ? (
+        <div className="flex items-center gap-2">
+          {/* Add task only on To Do (as you had) */}
+          {title === "To Do" && (
             <button
               onClick={() => onAddTask(id)}
               aria-label={`Add task to ${title}`}
               className="p-1.5 rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 transition-colors"
+              type="button"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -50,15 +52,18 @@ const Column: React.FC<ColumnProps> = ({
                 />
               </svg>
             </button>
-          ) : null}
-          {/* If you re-enable column delete, keep this handler: */}
-          {/* <button
+          )}
+
+          {/* Delete column icon */}
+          <button
             onClick={() => onConfirmDeleteColumn(id)}
             aria-label={`Delete ${title} column`}
-            className="p-1.5 rounded-full bg-red-200 text-red-600 hover:bg-red-300 transition-colors"
+            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
+            type="button"
+            title="Delete column"
           >
-            Delete
-          </button> */}
+            <FiTrash2 className="h-4 w-4" />
+          </button>
         </div>
       </div>
 

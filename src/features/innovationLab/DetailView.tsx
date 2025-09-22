@@ -134,7 +134,7 @@ const DetailView: React.FC = () => {
         <div className="rounded-lg border bg-white p-6">
           <p className="text-gray-700">Idea not found.</p>
           <button
-            className="mt-4 inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-gray-50"
+            className="rounded-md border px-2 py-1 text-sm hover:bg-gray-50"
             onClick={() => navigate("/ideas")}
           >
             Back to Innovation Lab
