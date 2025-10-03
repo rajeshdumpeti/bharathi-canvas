@@ -84,13 +84,15 @@ const UploadCard: React.FC = () => {
         <label className="flex h-24 cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-gray-700 bg-gray-800/50 text-gray-200 hover:border-gray-600">
           <input
             type="file"
-            accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+            accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,.png,.jpg,.jpeg,.gif,.webp"
             className="hidden"
             multiple
             onChange={(e) => onFiles(e.target.files)}
           />
           <div className="text-center">
-            <div className="text-sm">Drag & drop PDF / DOCX / TXT here</div>
+            <div className="text-sm">
+              Drag & drop PDF / DOCX / TXT / Images here
+            </div>{" "}
             <div className="text-[11px] text-gray-400">
               Max {MAX_MB} MB each
             </div>

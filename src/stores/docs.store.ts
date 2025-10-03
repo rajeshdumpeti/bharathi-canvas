@@ -35,12 +35,22 @@ const namespacedStorage = {
 const storage = createJSONStorage(() => namespacedStorage);
 
 const MAX = 5 * 1024 * 1024;
+const blobKey = (id: string) => `${DOCS_NS}:blob:${id}`;
+const textKey = (id: string) => `${DOCS_NS}:txt:${id}`;
+
+// ✅ allow images in addition to pdf/docx/txt
+// Accept PDFs, DOCX, TXT, and common images
 const allowMimes = [
   "application/pdf",
   "text/plain",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
 ];
-const byExtOK = (name: string) => /\.(pdf|txt|docx)$/i.test(name);
+const byExtOK = (name: string) =>
+  /\.(pdf|txt|docx|png|jpe?g|gif|webp)$/i.test(name);
 
 function readFileAsResult(file: File): Promise<DocUploadResult> {
   return new Promise((resolve, reject) => {
@@ -53,6 +63,7 @@ function readFileAsResult(file: File): Promise<DocUploadResult> {
       reader.readAsText(file);
       return;
     }
+    // For everything else (PDF, DOCX, IMAGES) we use dataURL preview
     reader.onload = () =>
       resolve({ kind: "data", dataURL: String(reader.result ?? "") });
     reader.onerror = reject;
@@ -105,7 +116,7 @@ export const useDocsStore = create<DocsState>()(
           }
           if (!(allowMimes.includes(f.type) || byExtOK(f.name))) {
             set({
-              error: `"${f.name}" is not a supported type (PDF, DOCX, TXT).`,
+              error: `"${f.name}" is not a supported type (PDF, DOCX, TXT, PNG, JPG, GIF, WEBP).`,
             });
             return;
           }
@@ -116,8 +127,24 @@ export const useDocsStore = create<DocsState>()(
 
           const toAdd: DocItem[] = results.map((res, idx) => {
             const f = files[idx];
+            const id = `${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`;
+            if (res.kind === "data") {
+              try {
+                sessionStorage.setItem(blobKey(id), res.dataURL);
+              } catch {
+                // ignore quota for sessionStorage; if it fails we fall back to persisting null below
+              }
+            } else if (res.kind === "txt") {
+              try {
+                sessionStorage.setItem(textKey(id), res.text);
+              } catch {
+                // ignore
+              }
+            }
             return {
-              id: `${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`,
+              id: `${Date.now()}-${idx}-${Math.random()
+                .toString(36)
+                .slice(2, 7)}`,
               name: f.name,
               type:
                 f.type || (f.name.match(/\.(\w+)$/)?.[1] || "").toLowerCase(),
@@ -126,8 +153,7 @@ export const useDocsStore = create<DocsState>()(
               dataURL: res.kind === "data" ? res.dataURL : null,
               text: res.kind === "txt" ? res.text : null,
 
-              // ✅ associate to a project if provided
-              project, // optional in your DocItem type
+              project,
             };
           });
 
@@ -143,10 +169,14 @@ export const useDocsStore = create<DocsState>()(
 
       deleteDocument: (doc) =>
         set((s) => {
+          // clear preview caches
+          sessionStorage.removeItem(blobKey(doc.id));
+          sessionStorage.removeItem(textKey(doc.id));
+
           const next = s.items.filter((d) => d.id !== doc.id);
           const nextSelected =
             s.selectedId === doc.id ? (next[0]?.id ?? null) : s.selectedId;
-          // If nothing changed, return previous state (prevents useless notifications)
+
           if (next === s.items && nextSelected === s.selectedId) return s;
           return { items: next, selectedId: nextSelected };
         }),

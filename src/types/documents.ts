@@ -8,6 +8,7 @@ export type DocItem = {
   createdAt: string; // ISO
   dataURL: string | null; // for pdf/docx preview
   text: string | null; // for txt preview
+  file?: File;
 };
 
 export type DocUploadResult =

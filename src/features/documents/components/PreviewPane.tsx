@@ -2,6 +2,7 @@ import React from "react";
 import DocxRenderer from "./DocxRenderer";
 import { EmptyState } from "packages/ui";
 import type { DocItem } from "types/documents";
+import { DOCS_NS } from "packages/storage"; // at top if not already
 
 const DocumentEmptyState: React.FC = () => (
   <EmptyState
@@ -15,8 +16,7 @@ const DocumentEmptyState: React.FC = () => (
     }
     bullets={[
       <>
-        Supported types: <code>PDF</code>, <code>DOCX</code>, <code>TXT</code>{" "}
-        (max 5&nbsp;MB each).
+        Supported types: PDF, DOCX, TXT, PNG, JPG, GIF, WEBP (max 5 MB each).
       </>,
       "Your documents will appear in the list on the left.",
       "Click a document to open its preview on this page.",
@@ -32,6 +32,16 @@ const PreviewPane: React.FC<Props> = ({ doc }) => {
   const isPDF = /pdf/i.test(doc.type) || /\.pdf$/i.test(doc.name);
   const isTXT = /text\/plain/i.test(doc.type) || /\.txt$/i.test(doc.name);
   const isDOCX = /docx/i.test(doc.type) || /\.docx$/i.test(doc.name);
+  const isImage =
+    /image\/(png|jpe?g|gif|webp)/i.test(doc.type) ||
+    /\.(png|jpe?g|gif|webp)$/i.test(doc.name);
+
+  // ...
+
+  const cachedDataURL =
+    doc.dataURL ?? sessionStorage.getItem(`${DOCS_NS}:blob:${doc.id}`) ?? null;
+  const cachedText =
+    doc.text ?? sessionStorage.getItem(`${DOCS_NS}:txt:${doc.id}`) ?? null;
 
   return (
     <div className="rounded-lg border bg-white p-4">
@@ -41,29 +51,34 @@ const PreviewPane: React.FC<Props> = ({ doc }) => {
           {(doc.size / 1024 / 1024).toFixed(2)} MB
         </div>
       </div>
-
       {isPDF && doc.dataURL && (
         <iframe
           title={doc.name}
-          src={doc.dataURL}
+          src={cachedDataURL}
           className="w-full h-[70vh] rounded border"
         />
       )}
-
       {isTXT && (
         <pre className="w-full h-[70vh] overflow-auto bg-gray-50 p-4 rounded text-sm whitespace-pre-wrap">
-          {doc.text ?? "(empty file)"}
+          {cachedText ?? "(empty file)"}
         </pre>
       )}
-
-      {isDOCX && doc.dataURL && (
+      {isDOCX && cachedDataURL && (
         <DocxRenderer
-          dataURL={doc.dataURL}
+          dataURL={cachedDataURL}
           className="h-[70vh] overflow-auto rounded border bg-white"
         />
       )}
+      {/* Image preview */}
+      {isImage && cachedDataURL && (
+        <img
+          src={cachedDataURL}
+          alt={doc.name}
+          className="max-h-[70vh] w-auto mx-auto rounded shadow-md object-contain"
+        />
+      )}
 
-      {isDOCX && !doc.dataURL && (
+      {(isDOCX || isImage) && !doc.dataURL && (
         <div className="p-6 text-center text-gray-600">
           Preview not available.
         </div>
