@@ -1,9 +1,9 @@
 {
   "files": {
-    "main.css": "/bharathi-canvas/static/css/main.c36c41bf.css",
-    "main.js": "/bharathi-canvas/static/js/main.e4fb4313.js",
+    "main.css": "/bharathi-canvas/static/css/main.e9436f7c.css",
+    "main.js": "/bharathi-canvas/static/js/main.e0b92c3b.js",
     "static/js/97.a6b15674.chunk.js": "/bharathi-canvas/static/js/97.a6b15674.chunk.js",
-    "static/js/103.aeb017dc.chunk.js": "/bharathi-canvas/static/js/103.aeb017dc.chunk.js",
+    "static/js/103.e055610a.chunk.js": "/bharathi-canvas/static/js/103.e055610a.chunk.js",
     "static/js/380.07527024.chunk.js": "/bharathi-canvas/static/js/380.07527024.chunk.js",
     "static/js/498.f67293b5.chunk.js": "/bharathi-canvas/static/js/498.f67293b5.chunk.js",
     "static/js/805.ca70fa4b.chunk.js": "/bharathi-canvas/static/js/805.ca70fa4b.chunk.js",
@@ -18,10 +18,10 @@
     "static/js/96.2d29a68e.chunk.js": "/bharathi-canvas/static/js/96.2d29a68e.chunk.js",
     "static/js/857.21bf7411.chunk.js": "/bharathi-canvas/static/js/857.21bf7411.chunk.js",
     "index.html": "/bharathi-canvas/index.html",
-    "main.c36c41bf.css.map": "/bharathi-canvas/static/css/main.c36c41bf.css.map",
-    "main.e4fb4313.js.map": "/bharathi-canvas/static/js/main.e4fb4313.js.map",
+    "main.e9436f7c.css.map": "/bharathi-canvas/static/css/main.e9436f7c.css.map",
+    "main.e0b92c3b.js.map": "/bharathi-canvas/static/js/main.e0b92c3b.js.map",
     "97.a6b15674.chunk.js.map": "/bharathi-canvas/static/js/97.a6b15674.chunk.js.map",
-    "103.aeb017dc.chunk.js.map": "/bharathi-canvas/static/js/103.aeb017dc.chunk.js.map",
+    "103.e055610a.chunk.js.map": "/bharathi-canvas/static/js/103.e055610a.chunk.js.map",
     "380.07527024.chunk.js.map": "/bharathi-canvas/static/js/380.07527024.chunk.js.map",
     "498.f67293b5.chunk.js.map": "/bharathi-canvas/static/js/498.f67293b5.chunk.js.map",
     "805.ca70fa4b.chunk.js.map": "/bharathi-canvas/static/js/805.ca70fa4b.chunk.js.map",
@@ -37,7 +37,7 @@
     "857.21bf7411.chunk.js.map": "/bharathi-canvas/static/js/857.21bf7411.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c36c41bf.css",
-    "static/js/main.e4fb4313.js"
+    "static/css/main.e9436f7c.css",
+    "static/js/main.e0b92c3b.js"
   ]
 }
