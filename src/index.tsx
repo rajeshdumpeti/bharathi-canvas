@@ -14,10 +14,20 @@ if (!container) throw new Error("Root container missing in index.html");
 
 const root = createRoot(container);
 
-root.render(
-  <React.StrictMode>
-    <Router>
-      <App />
-    </Router>
-  </React.StrictMode>
+const AppTree = () => (
+  <Router>
+    <App />
+  </Router>
 );
+
+if (process.env.NODE_ENV === "development") {
+  // No StrictMode in dev to avoid double mount / duplicate effects
+  root.render(<AppTree />);
+} else {
+  // Keep StrictMode in production builds
+  root.render(
+    <React.StrictMode>
+      <AppTree />
+    </React.StrictMode>
+  );
+}

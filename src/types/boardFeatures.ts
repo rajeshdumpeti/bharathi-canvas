@@ -5,7 +5,7 @@ export type StoryId = string;
 export type BugId = string;
 
 export type StoryStatus = "To Do" | "In Progress" | "Validation" | "Done";
-export type Priority = "Low" | "Medium" | "High" | "Critical";
+export type WorkPriority = "Low" | "Medium" | "High" | "Critical";
 export type BugSeverity = "Minor" | "Major" | "Critical";
 
 export interface Feature {
@@ -38,7 +38,7 @@ export interface Bug {
   title: string;
   repro?: string;
   severity: BugSeverity;
-  priority: Priority;
+  priority: WorkPriority;
   status: "Open" | "In Progress" | "Resolved" | "Closed";
   createdAt: string;
   updatedAt: string;
