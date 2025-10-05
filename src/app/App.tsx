@@ -3,11 +3,11 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import AppShell from "app/shell/AppShell";
 import AuthProvider from "lib/auth/AuthProvider";
 import SearchProvider from "lib/search/SearchProvider";
-import StoriesView from "features/board/StoriesView";
 import SignIn from "features/auth/SignIn";
 import Register from "features/auth/Register";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "lib/query/client";
+// import HealthBadge from "components/ui/HealthBadge";
 
 // Lazy app entrypoints (one chunk per app)
 const BoardApp = lazy(() => import("app/board/App"));
@@ -16,9 +16,6 @@ const ReleaseNotesApp = lazy(() => import("app/release-notes/App"));
 const ProjectHubApp = lazy(() => import("app/project-hub/App"));
 const IdeasApp = lazy(() => import("app/ideas/App"));
 const LandingPage = lazy(() => import("features/landing/LandingPage"));
-const FeatureDashboard = lazy(
-  () => import("features/board/features/FeatureDashboard")
-);
 
 // tiny wrapper to keep your LandingPage callbacks working
 function LandingWithNav() {
@@ -38,6 +35,8 @@ export default function App() {
   return (
     <Suspense fallback={<div className="p-6">Loading…</div>}>
       <QueryClientProvider client={queryClient}>
+        {/* <HealthBadge /> */}
+
         <AuthProvider>
           <SearchProvider>
             <Routes>

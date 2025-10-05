@@ -4,6 +4,7 @@ import { useAuth } from "lib/auth/AuthProvider";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "lib/api"; // <-- ensure this is at top
 
 // --- form schema ---
 const RegisterSchema = z.object({
@@ -25,13 +26,39 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({ resolver: zodResolver(RegisterSchema) });
 
-  const onSubmit = (data: RegisterForm) => {
-    setIsTransitioning(true); // Start transition
-    setTimeout(() => {
+  const onSubmit = async (data: RegisterForm) => {
+    try {
+      setIsTransitioning(true);
+
+      // 1) Register
+      await api.post("/auth/register", {
+        email: data.email,
+        password: data.password,
+        first_name: data.firstName,
+        last_name: data.lastName,
+      });
+
+      // 2) Login to get token
+      const res = await api.post("/auth/login", {
+        email: data.email,
+        password: data.password,
+      });
+
+      const token: string = res.data?.access_token;
+      if (token) {
+        localStorage.setItem("bc:token", token);
+      }
+
+      // 3) Update client auth context (optional, matches your prior UX)
       const name = `${data.firstName} ${data.lastName}`.trim() || "User";
       signIn({ name, email: data.email });
+
       navigate("/");
-    }, 100); // Match the transition duration
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.detail ?? "Registration failed");
+      setIsTransitioning(false);
+    }
   };
 
   return (
