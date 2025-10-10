@@ -19,3 +19,20 @@ export async function fetchTasksByProject(projectId: string): Promise<Task[]> {
     completedAt: t.completed_at ?? null,
   }));
 }
+
+export async function createTask(payload: {
+  title: string;
+  description?: string;
+  status: string; // expect underscores: "to_do" | "in_progress" | ...
+  assignee?: string;
+  project_id: string;
+}) {
+  const { data } = await api.post("/tasks", payload);
+  // normalize response for board UI
+  const normalized: Task = {
+    ...data,
+    status: String(data.status).replace("-", "_"),
+    project: data.project_id,
+  };
+  return normalized;
+}
