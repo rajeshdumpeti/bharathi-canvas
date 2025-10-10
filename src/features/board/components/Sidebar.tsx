@@ -24,9 +24,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const projectTasks = tasks.filter(
     (t) => selectedProject && t.project === selectedProject.id
   );
-  const todoCount = projectTasks.filter((t) => t.status === "to-do").length;
+  const todoCount = projectTasks.filter((t) => t.status === "to_do").length;
   const inProgressCount = projectTasks.filter(
-    (t) => t.status === "in-progress"
+    (t) => t.status === "in_progress"
   ).length;
   const doneCount = projectTasks.filter((t) => t.status === "done").length;
   const totalTasks = projectTasks.length;

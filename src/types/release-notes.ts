@@ -10,7 +10,7 @@ export type BoardProject = {
 export type BoardTask = {
   id: Id;
   title?: string;
-  status?: "to-do" | "in-progress" | "validation" | "done" | string;
+  status?: "to_do" | "in_progress" | "validation" | "done" | string;
   project?: Id;
   completedAt?: string | null; // ISO
   priority?: "Low" | "Medium" | "High" | string;

@@ -46,7 +46,7 @@ export default function Register() {
 
       const token: string = res.data?.access_token;
       if (token) {
-        localStorage.setItem("bc:token", token);
+        localStorage.setItem("bc.token", token);
       }
 
       // 3) Update client auth context (optional, matches your prior UX)
