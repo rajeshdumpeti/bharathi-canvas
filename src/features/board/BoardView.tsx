@@ -11,9 +11,10 @@ import {
   deleteStoryById,
   moveStoryByStoryId,
   featuresByProject,
+  syncTaskToStory,
 } from "./features/storage";
 import { api } from "lib/api";
-import { fetchTasksByProject } from "api/tasks";
+import { fetchTasksByProject, createTask } from "api/tasks";
 
 const DEFAULT_COLS: BoardColumn[] = [
   { id: "to_do", title: "To Do" },
@@ -100,10 +101,16 @@ export default function BoardView() {
         if (active) {
           const tasksRes = await fetchTasksByProject(active.id);
           setTasks(tasksRes);
-          const cols = (next?.columns || []).map((c: any) => ({
-            id: String(c.key ?? c.id ?? "").replace("-", "_"),
-            title: c.title,
-          }));
+          const desiredOrder = ["to_do", "in_progress", "validation", "done"];
+          const cols = (next?.columns || [])
+            .map((c: any) => ({
+              id: String(c.key ?? c.id ?? "").replaceAll("-", "_"),
+              title: c.title,
+            }))
+            .sort(
+              (a, b) => desiredOrder.indexOf(a.id) - desiredOrder.indexOf(b.id)
+            );
+
           setColumns(cols.length ? cols : DEFAULT_COLS);
         } else {
           setColumns(DEFAULT_COLS);
@@ -155,10 +162,16 @@ export default function BoardView() {
       // if (!next.columns || next.columns.length === 0) {
       //   next.columns = DEFAULT_COLS;
       // }
-      const cols = (next?.columns || []).map((c: any) => ({
-        id: String(c.key ?? c.id ?? "").replace("-", "_"), // <-- normalize to underscores
-        title: c.title,
-      }));
+      const desiredOrder = ["to_do", "in_progress", "validation", "done"];
+      const cols = (next?.columns || [])
+        .map((c: any) => ({
+          id: String(c.key ?? c.id ?? "").replaceAll("-", "_"),
+          title: c.title,
+        }))
+        .sort(
+          (a, b) => desiredOrder.indexOf(a.id) - desiredOrder.indexOf(b.id)
+        );
+
       setColumns(cols.length ? cols : DEFAULT_COLS);
     } else {
       setColumns(DEFAULT_COLS);
@@ -280,23 +293,45 @@ export default function BoardView() {
     if (!selectedProject) return;
 
     try {
+      // build payload for backend (underscores; backend stores as needed)
       const payload = {
-        title: taskData.title,
+        title: taskData.title || "",
         description: taskData.description || "",
-        status: taskData.status || "to_do",
+        status: (taskData.status as string) || "to_do",
         assignee: taskData.assignee || "",
         project_id: selectedProject.id,
       };
 
-      // 👇 POST to backend
-      const res = await api.post("/tasks", payload);
-      const savedTask = res.data;
+      // create on server
+      const created = await createTask(payload);
 
-      setTasks((prev) => [...prev, savedTask]);
+      // push into UI immediately (no refresh needed)
+      setTasks((prev) => [...prev, created]);
+
+      // (optional) if you still mirror to Features:
+      if (typeof taskData.featureId === "string" && taskData.featureId) {
+        syncTaskToStory(
+          {
+            id: created.id,
+            project: created.project!,
+            storyId: created.storyId, // if you add it later
+            title: created.title,
+            status: created.status as any,
+            assignee: created.assignee,
+            priority: created.priority ?? "Low",
+            createdAt: created.createdAt,
+            completedAt: created.completedAt ?? null,
+            acceptanceCriteria: created.acceptanceCriteria ?? "",
+          } as any,
+          taskData.featureId
+        );
+      }
+
       setIsTaskModalOpen(false);
       setEditingTask(null);
     } catch (err) {
-      console.error("Failed to save task", err);
+      console.error("Failed to create task", err);
+      alert("Failed to create task. Please try again.");
     }
   };
 
