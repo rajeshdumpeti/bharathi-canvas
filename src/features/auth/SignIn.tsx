@@ -41,7 +41,7 @@ export default function SignIn() {
       }
 
       // 2) Store the token for subsequent requests
-      localStorage.setItem("bc:token", token);
+      localStorage.setItem("bc.token", token);
 
       // 3) (optional) Fetch /auth/me to get profile details
       const meRes = await api.get("/auth/me", {

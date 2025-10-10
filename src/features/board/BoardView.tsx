@@ -11,12 +11,13 @@ import {
   deleteStoryById,
   moveStoryByStoryId,
   featuresByProject,
-  syncTaskToStory,
 } from "./features/storage";
+import { api } from "lib/api";
+import { fetchTasksByProject } from "api/tasks";
 
 const DEFAULT_COLS: BoardColumn[] = [
-  { id: "to-do", title: "To Do" },
-  { id: "in-progress", title: "In Progress" },
+  { id: "to_do", title: "To Do" },
+  { id: "in_progress", title: "In Progress" },
   { id: "validation", title: "Validation" },
   { id: "done", title: "Done" },
 ];
@@ -62,66 +63,80 @@ export default function BoardView() {
   };
 
   useEffect(() => {
-    const reload = () => {
-      const next = storage.get<typeof tasks>(BOARD_NS, "tasks", []);
-      setTasks(next);
-    };
-    window.addEventListener("storage", reload);
-    window.addEventListener("board:projectsUpdated", reload as EventListener);
-    return () => {
-      window.removeEventListener("storage", reload);
-      window.removeEventListener(
-        "board:projectsUpdated",
-        reload as EventListener
-      );
-    };
-  }, []);
+    if (!selectedProject) return;
 
-  // ---------- load once ----------
-  useEffect(() => {
-    setIsLoading(true);
-    try {
-      const savedProjects = storage.get<Project[]>(BOARD_NS, "projects", []);
-      const savedTasks = storage.get<Task[]>(BOARD_NS, "tasks", []);
-
-      // normalize statuses
-      const ok = new Set(["to-do", "in-progress", "validation", "done"]);
-      const fixed = (savedTasks || []).map((t) => ({
-        ...t,
-        status: ok.has(String(t.status))
-          ? (t.status as Task["status"])
-          : "to-do",
-      }));
-
-      setProjects(savedProjects);
-      setTasks(fixed);
-      if (JSON.stringify(savedTasks) !== JSON.stringify(fixed)) {
-        storage.set(BOARD_NS, "tasks", fixed);
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        const tasks = await fetchTasksByProject(selectedProject.id);
+        setTasks(tasks);
+        storage.set(BOARD_NS, "tasks", tasks); // optional caching
+      } catch (err) {
+        console.error("Failed to load tasks", err);
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    };
+
+    loadTasks();
+  }, [selectedProject]);
+
+  // ---------- Load projects and tasks from backend ----------
+  console.log("projects", projects);
+  useEffect(() => {
+    const loadProjectsAndTasks = async () => {
+      try {
+        setIsLoading(true);
+        const projectsRes = await api.get("/projects");
+        const allProjects = projectsRes.data || [];
+        setProjects(allProjects);
+
+        // auto-select the first project or query param
+        const qid = search.get("project");
+        const active =
+          allProjects.find((p) => p.id === qid) || allProjects[0] || null;
+        setSelectedProject(active);
+
+        if (active) {
+          const tasksRes = await fetchTasksByProject(active.id);
+          setTasks(tasksRes);
+          const cols = (next?.columns || []).map((c: any) => ({
+            id: String(c.key ?? c.id ?? "").replace("-", "_"),
+            title: c.title,
+          }));
+          setColumns(cols.length ? cols : DEFAULT_COLS);
+        } else {
+          setColumns(DEFAULT_COLS);
+          setTasks([]);
+        }
+      } catch (err) {
+        console.error("Failed to load board data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProjectsAndTasks();
+  }, [search]);
 
   // ---------- react to sidebar/storage changes ----------
   useEffect(() => {
-    const sync = () => {
-      const latestProjects = storage.get<Project[]>(BOARD_NS, "projects", []);
-      const latestTasks = storage.get<Task[]>(BOARD_NS, "tasks", []);
-      setProjects(latestProjects);
-      setTasks(latestTasks);
-    };
-    window.addEventListener("storage", sync);
-    window.addEventListener("board:projectsUpdated", sync as EventListener);
-    return () => {
-      window.removeEventListener("storage", sync);
-      window.removeEventListener(
-        "board:projectsUpdated",
-        sync as EventListener
-      );
-    };
-  }, []);
+    if (!selectedProject?.id) {
+      setTasks([]);
+      return;
+    }
+    (async () => {
+      try {
+        const remote = await fetchTasksByProject(selectedProject.id);
+        setTasks(remote);
+      } catch (e) {
+        console.error("Failed to load tasks", e);
+        setTasks([]);
+      }
+    })();
+  }, [selectedProject?.id]);
 
+  // ---------- derive selected project from ?project= or stored id ----------
   // ---------- derive selected project from ?project= or stored id ----------
   useEffect(() => {
     const qid = search.get("project") || null;
@@ -134,11 +149,19 @@ export default function BoardView() {
 
     const next = projects.find((p) => p.id === pickId) || projects[0] || null;
     setSelectedProject(next);
-    setColumns(next?.columns || []);
 
+    // ✅ If the project doesn't have columns yet, fall back to defaults
     if (next) {
-      storage.set(BOARD_NS, "selectedProjectId", next.id);
+      // if (!next.columns || next.columns.length === 0) {
+      //   next.columns = DEFAULT_COLS;
+      // }
+      const cols = (next?.columns || []).map((c: any) => ({
+        id: String(c.key ?? c.id ?? "").replace("-", "_"), // <-- normalize to underscores
+        title: c.title,
+      }));
+      setColumns(cols.length ? cols : DEFAULT_COLS);
     } else {
+      setColumns(DEFAULT_COLS);
       storage.remove(BOARD_NS, "selectedProjectId");
     }
   }, [search, projects]);
@@ -208,9 +231,9 @@ export default function BoardView() {
     const moved = tasks.find((t) => t.id === taskId);
     if (moved?.storyId) {
       const toFeature =
-        newColumnId === "to-do"
+        newColumnId === "to_do"
           ? "To Do"
-          : newColumnId === "in-progress"
+          : newColumnId === "in_progress"
             ? "In Progress"
             : newColumnId === "validation"
               ? "Validation"
@@ -229,10 +252,10 @@ export default function BoardView() {
       typeof columnId === "object" &&
       ("nativeEvent" in columnId || "target" in columnId);
     const status = isEventLike
-      ? "to-do"
+      ? "to_do"
       : typeof columnId === "string"
         ? columnId
-        : "to-do";
+        : "to_do";
 
     setEditingTask({
       id: `temp-${Date.now()}`,
@@ -253,49 +276,28 @@ export default function BoardView() {
     setIsTaskModalOpen(true);
   };
 
-  const handleSaveTask = (taskData: DraftTask) => {
+  const handleSaveTask = async (taskData: DraftTask) => {
     if (!selectedProject) return;
 
-    const isNew = !taskData.id || taskData.id.startsWith("temp-");
-    const dataToSave: Task = {
-      ...(taskData as Task),
-      id: isNew ? `task-${Date.now()}` : (taskData.id as string),
-      project: selectedProject.id,
-      storyId:
-        taskData.storyId ||
-        (isNew ? nextStoryId(selectedProject.id) : taskData.storyId),
-      acceptanceCriteria: taskData.acceptanceCriteria || "",
-    };
+    try {
+      const payload = {
+        title: taskData.title,
+        description: taskData.description || "",
+        status: taskData.status || "to_do",
+        assignee: taskData.assignee || "",
+        project_id: selectedProject.id,
+      };
 
-    const updated = isNew
-      ? [...tasks, dataToSave]
-      : tasks.map((t) => (t.id === dataToSave.id ? { ...dataToSave } : t));
+      // 👇 POST to backend
+      const res = await api.post("/tasks", payload);
+      const savedTask = res.data;
 
-    setTasks(updated);
-    storage.set(BOARD_NS, "tasks", updated);
-
-    // If user chose a Feature in TaskForm, reflect this task into Features as a Story
-    if (typeof taskData.featureId === "string" && taskData.featureId) {
-      // dataToSave already contains the final task payload (id/title/status/project/createdAt)
-      syncTaskToStory(
-        {
-          id: dataToSave.id,
-          project: dataToSave.project!,
-          storyId: dataToSave.storyId, // keep linkage if present
-          title: dataToSave.title,
-          status: dataToSave.status as any, // "to-do" | "in-progress" | ...
-          assignee: dataToSave.assignee,
-          priority: dataToSave.priority,
-          createdAt: dataToSave.createdAt,
-          completedAt: dataToSave.completedAt ?? null,
-          acceptanceCriteria: dataToSave.acceptanceCriteria,
-        } as any,
-        taskData.featureId
-      );
+      setTasks((prev) => [...prev, savedTask]);
+      setIsTaskModalOpen(false);
+      setEditingTask(null);
+    } catch (err) {
+      console.error("Failed to save task", err);
     }
-
-    setIsTaskModalOpen(false);
-    setEditingTask(null);
   };
 
   const confirmDeleteTask = (taskId: string) => {
@@ -367,16 +369,6 @@ export default function BoardView() {
     window.dispatchEvent(new Event("board:projectsUpdated"));
   };
 
-  // Per-project Story ID sequence (starts at 234567)
-  const nextStoryId = (projectId: string) => {
-    const map = storage.get<Record<string, number>>(BOARD_NS, "storySeq", {});
-    const current = Number(map[projectId] || 234567);
-    const id = `US${current}`;
-    map[projectId] = current + 1;
-    storage.set(BOARD_NS, "storySeq", map);
-    return id;
-  };
-
   // ---------- render ----------
   return (
     <div className="h-full w-full flex flex-col bg-gray-50 font-sans text-gray-800">
@@ -394,7 +386,7 @@ export default function BoardView() {
                         {`${selectedProject.name} Project`}
                       </h1>
                       <button
-                        onClick={() => handleAddTask("to-do")}
+                        onClick={() => handleAddTask("to_do")}
                         className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
                       >
                         Create Story
@@ -574,7 +566,7 @@ export default function BoardView() {
               priority: "Low",
               architecture: "FE",
               project: selectedProject?.id || "",
-              status: "to-do",
+              status: "to_do",
             }
           }
           onSave={handleSaveTask}

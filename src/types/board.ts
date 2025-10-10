@@ -1,5 +1,5 @@
 // src/types/board.ts
-export type Status = "to-do" | "in-progress" | "validation" | "done";
+export type Status = "to_do" | "in_progress" | "validation" | "done";
 
 export type Priority = "High" | "Medium" | "Low";
 export type Tech = "FE" | "BE" | "DB" | "ARCH" | "MISC";

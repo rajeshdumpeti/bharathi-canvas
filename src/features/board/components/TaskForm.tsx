@@ -89,7 +89,7 @@ export default function TaskForm({
       ...data,
       id: task.id ?? data.id,
       project: task.project ?? data.project,
-      status: task.status ?? data.status,
+      status: task.status ?? "to_do",
       storyId: task.storyId ?? data.storyId, // BoardView may assign on save if missing
       featureId: data.featureId ?? task.featureId, // pass chosen feature up
     });
@@ -210,6 +210,21 @@ export default function TaskForm({
             rows={3}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
+        </div>
+        {/* Row X: Status */}
+        <div>
+          <label className="block text-gray-700 text-sm font-semibold mb-2">
+            Status
+          </label>
+          <select
+            {...register("status", { required: true })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+            <option value="to_do">To Do</option>
+            <option value="in_progress">In Progress</option>
+            <option value="validation">Validation</option>
+            <option value="done">Done</option>
+          </select>
         </div>
 
         {/* Row 4: Assignee + Priority */}

@@ -10,7 +10,7 @@ import type { SidebarProps } from "types/sidebar";
 import { storage, BOARD_NS } from "packages/storage";
 import { Project } from "types/board";
 import StoriesView from "features/board/StoriesView";
-
+import { api } from "lib/api";
 /**
  * This component is the persistent layout for the board area.
  * Left: sidebar. Right: nested routes (BoardView | Features | Feature detail).
@@ -18,8 +18,8 @@ import StoriesView from "features/board/StoriesView";
  */
 
 const DEFAULT_COLS = [
-  { id: "to-do", title: "To Do" },
-  { id: "in-progress", title: "In Progress" },
+  { id: "to_do", title: "To Do" },
+  { id: "in_progress", title: "In Progress" },
   { id: "validation", title: "Validation" },
   { id: "done", title: "Done" },
 ] as const;
@@ -98,14 +98,19 @@ export default function BoardApp() {
     isSidebarOpen,
     onToggleSidebar: () => setIsSidebarOpen((s) => !s),
     tasks,
-    onAddProject: (name: string) => {
-      const next = [
-        ...projects,
-        { id: `proj_${Date.now()}`, name, columns: [...DEFAULT_COLS] },
-      ];
-      setProjects(next);
-      storage.set(BOARD_NS, "projects", next);
-      window.dispatchEvent(new Event("board:projectsUpdated"));
+    onAddProject: async (name: string) => {
+      try {
+        const res = await api.post("/projects", { name });
+        const newProject = res.data;
+        const next = [...projects, newProject];
+        setProjects(next);
+
+        storage.set(BOARD_NS, "projects", next);
+        window.dispatchEvent(new Event("board:projectsUpdated"));
+      } catch (err) {
+        console.error("Error creating project:", err);
+        alert("Failed to create project. Check if you're logged in.");
+      }
     },
 
     onConfirmDeleteProject: (p) => {

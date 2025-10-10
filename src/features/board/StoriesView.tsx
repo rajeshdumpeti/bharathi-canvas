@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { storage, BOARD_NS } from "packages/storage";
 import ExportStoriesBar from "./components/ExportStoriesBar";
 
-type StatusId = "to-do" | "in-progress" | "validation" | "done";
+type StatusId = "to_do" | "in_progress" | "validation" | "done";
 
 type Task = {
   id: string;
@@ -25,15 +25,15 @@ type Project = {
 };
 
 const STATUSES: { id: StatusId; label: string }[] = [
-  { id: "to-do", label: "To Do" },
-  { id: "in-progress", label: "In Progress" },
+  { id: "to_do", label: "To Do" },
+  { id: "in_progress", label: "In Progress" },
   { id: "validation", label: "Validation" },
   { id: "done", label: "Done" },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  "to-do": "bg-gray-100 text-gray-700",
-  "in-progress": "bg-blue-100 text-blue-700",
+  to_do: "bg-gray-100 text-gray-700",
+  in_progress: "bg-blue-100 text-blue-700",
   validation: "bg-amber-100 text-amber-700",
   done: "bg-green-100 text-green-700",
 };
