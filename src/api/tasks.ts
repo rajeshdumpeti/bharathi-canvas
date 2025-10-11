@@ -36,3 +36,14 @@ export async function createTask(payload: {
   };
   return normalized;
 }
+
+// src/api/tasks.ts
+export async function updateTaskStatus(taskId: string, newStatus: string) {
+  const payload = { status: newStatus }; // backend expects hyphen format
+  const { data } = await api.patch(`/tasks/${taskId}`, payload);
+  return {
+    ...data,
+    status: String(data.status),
+    project: data.project_id,
+  };
+}

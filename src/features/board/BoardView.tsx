@@ -9,7 +9,6 @@ import AddColumnModal from "./components/AddColumnModal";
 import type { BoardColumn, Project, Task } from "types/board";
 import {
   deleteStoryById,
-  moveStoryByStoryId,
   featuresByProject,
   syncTaskToStory,
 } from "./features/storage";
@@ -83,7 +82,6 @@ export default function BoardView() {
   }, [selectedProject]);
 
   // ---------- Load projects and tasks from backend ----------
-  console.log("projects", projects);
   useEffect(() => {
     const loadProjectsAndTasks = async () => {
       try {
@@ -102,7 +100,7 @@ export default function BoardView() {
           const tasksRes = await fetchTasksByProject(active.id);
           setTasks(tasksRes);
           const desiredOrder = ["to_do", "in_progress", "validation", "done"];
-          const cols = (next?.columns || [])
+          const cols = (active?.columns || [])
             .map((c: any) => ({
               id: String(c.key ?? c.id ?? "").replaceAll("-", "_"),
               title: c.title,
@@ -218,7 +216,7 @@ export default function BoardView() {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) =>
     e.preventDefault();
 
-  const handleDrop = (
+  const handleDrop = async (
     e: React.DragEvent<HTMLDivElement>,
     newColumnId: string
   ) => {
@@ -226,6 +224,7 @@ export default function BoardView() {
     const taskId = e.dataTransfer.getData("taskId");
     const nowISO = new Date().toISOString();
 
+    // Optimistically update the UI
     const updated = tasks.map((t) => {
       if (t.id !== taskId) return t;
       const wasDone = t.status === "done";
@@ -240,18 +239,16 @@ export default function BoardView() {
     setTasks(updated);
     storage.set(BOARD_NS, "tasks", updated);
 
-    // if mirrored from a Feature story, move it there as well
-    const moved = tasks.find((t) => t.id === taskId);
-    if (moved?.storyId) {
-      const toFeature =
-        newColumnId === "to_do"
-          ? "To Do"
-          : newColumnId === "in_progress"
-            ? "In Progress"
-            : newColumnId === "validation"
-              ? "Validation"
-              : "Done";
-      moveStoryByStoryId(moved.storyId, toFeature);
+    // 🔥 Persist to backend
+    try {
+      await api.patch(`/tasks/${taskId}/status`, {
+        status: newColumnId,
+      });
+    } catch (err) {
+      console.error("Failed to update task status:", err);
+      // revert if backend fails
+      setTasks(tasks);
+      storage.set(BOARD_NS, "tasks", tasks);
     }
   };
 
