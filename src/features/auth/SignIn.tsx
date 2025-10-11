@@ -54,13 +54,31 @@ export default function SignIn() {
       };
 
       // 4) Update client auth context & redirect
+      // 4) Update client auth context
       const displayName =
         (me.first_name || "") && (me.last_name || "")
           ? `${me.first_name} ${me.last_name}`.trim()
           : (me.email?.split("@")[0] ?? "User");
 
       signIn({ name: displayName, email: me.email });
-      navigate("/");
+
+      // 5) Redirect user to first project (if any)
+      try {
+        const projectsRes = await api.get("/projects", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const projects = projectsRes.data || [];
+        console.log("projects", projects);
+        if (projects.length > 0) {
+          const firstProject = projects[0];
+          navigate(`/board?project=${firstProject.id}`, { replace: true });
+        } else {
+          navigate("/board", { replace: true });
+        }
+      } catch (err) {
+        console.error("Failed to fetch projects after login:", err);
+        navigate("/board", { replace: true });
+      }
     } catch (err: any) {
       console.error(err);
       setIsTransitioning(false);

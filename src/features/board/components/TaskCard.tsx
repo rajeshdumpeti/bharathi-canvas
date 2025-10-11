@@ -30,9 +30,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
     >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
-          {task.storyId && (
+          {(task.storyId || (task as any).story_code) && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700">
-              {task.storyId}
+              {task.storyId || (task as any).story_code}
             </span>
           )}
           {task.architecture && (

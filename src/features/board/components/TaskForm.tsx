@@ -100,9 +100,8 @@ export default function TaskForm({
       {/* User Story banner */}
       <div className="mb-5">
         <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 text-sm font-medium">
-          <span>User Story</span>
           <span className="font-semibold">
-            {task.storyId ? task.storyId : "Will be assigned on save"}
+            {task.storyId || (task as any).story_code}
           </span>
         </div>
       </div>
