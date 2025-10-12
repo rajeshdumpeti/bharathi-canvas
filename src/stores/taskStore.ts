@@ -6,6 +6,7 @@ import {
   createTask as apiCreateTask,
   updateTaskStatus as apiUpdateTaskStatus,
   deleteTask as apiDeleteTask,
+  updateTask as apiUpdateTask,
 } from "api/tasks";
 
 interface TaskState {
@@ -16,6 +17,11 @@ interface TaskState {
   // actions
   loadTasks: (projectId: string) => Promise<void>;
   createTask: (projectId: string, payload: any) => Promise<Task | null>;
+  updateTask: (
+    taskId: string,
+    projectId: string,
+    patch: Partial<Task>
+  ) => Promise<Task | null>;
   updateTaskStatus: (
     taskId: string,
     newStatus: string,
@@ -66,6 +72,25 @@ export const useTaskStore = create<TaskState>()(
           return created;
         } catch (err) {
           console.error("Failed to create task:", err);
+          return null;
+        }
+      },
+
+      // 👇 NEW: updateTask (full/partial update)
+      updateTask: async (taskId, projectId, patch) => {
+        try {
+          const updated = await apiUpdateTask(taskId, patch);
+          set((s) => ({
+            tasksByProject: {
+              ...s.tasksByProject,
+              [projectId]: (s.tasksByProject[projectId] || []).map((t) =>
+                t.id === taskId ? { ...t, ...updated } : t
+              ),
+            },
+          }));
+          return updated;
+        } catch (err) {
+          set({ error: "Failed to update task" });
           return null;
         }
       },

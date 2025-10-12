@@ -8,8 +8,13 @@ import { useState } from "react";
 
 export function useTasks() {
   const { getSelectedProject } = useProjectStore();
-  const { tasksByProject, createTask, updateTaskStatus, deleteTask } =
-    useTaskStore();
+  const {
+    tasksByProject,
+    createTask,
+    updateTaskStatus,
+    deleteTask,
+    updateTask,
+  } = useTaskStore();
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskToDeleteId, setTaskToDeleteId] = useState<string | null>(null);
@@ -47,7 +52,11 @@ export function useTasks() {
         assignee: taskData.assignee || "",
         project_id: selectedProject.id,
       };
-      const created = await createTask(selectedProject.id, payload);
+      const isEdit = taskData.id && !String(taskData.id).startsWith("temp-");
+      const created = isEdit
+        ? await updateTask(taskData.id, selectedProject.id, payload) // ✅ update existing task
+        : await createTask(selectedProject.id, payload); // ✅ crea
+
       const normalizedStatus = toStatusId(created.status) as NormalizedStatus;
       if (taskData.featureId) {
         syncTaskToStory(

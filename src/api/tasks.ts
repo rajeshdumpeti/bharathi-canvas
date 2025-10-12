@@ -16,8 +16,25 @@ export async function createTask(payload: any): Promise<Task> {
   const res = await api.post("/tasks", { ...payload, user_id: userId });
   return res.data;
 }
+
+export async function updateTask(
+  taskId: string,
+  payload: Partial<Task>
+): Promise<Task> {
+  const userId = getUserId();
+  const res = await api.patch(`/tasks/${taskId}`, {
+    ...payload,
+    user_id: userId,
+  });
+  return res.data;
+}
+
 export async function updateTaskStatus(taskId: string, status: string) {
-  const res = await api.patch(`/tasks/${taskId}/status`, { status });
+  const userId = getUserId();
+  const res = await api.patch(`/tasks/${taskId}/status`, {
+    status,
+    user_id: userId,
+  });
   return res.data;
 }
 
