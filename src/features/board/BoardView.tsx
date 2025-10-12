@@ -6,12 +6,13 @@ import Column from "./components/Column";
 import TaskForm from "./components/TaskForm";
 import AddColumnModal from "./components/AddColumnModal";
 import type { BoardColumn } from "types/board";
-import { featuresByProject } from "./features/storage";
 import { useProjectStore, DEFAULT_COLUMNS } from "stores/projectStore";
 import { useSyncProjectParam } from "hooks/useSyncProjectParam";
 import { useBoardActions } from "./hooks/useBoardActions";
 import { toStatusId } from "utils/statusUtils";
 import { normalizeColumns } from "utils/columns";
+import { useQuery } from "@tanstack/react-query";
+import { fetchFeaturesByProject } from "api/features";
 
 export default function BoardView() {
   const [columns, setColumns] = useState<BoardColumn[]>(DEFAULT_COLUMNS);
@@ -103,6 +104,11 @@ export default function BoardView() {
     setIsColumnModalOpen(false);
   };
 
+  const { data: features = [], isLoading: featuresLoading } = useQuery({
+    queryKey: ["features", selectedProject?.id],
+    queryFn: () => fetchFeaturesByProject(selectedProject!.id),
+    enabled: !!selectedProject?.id,
+  });
   // ---------- Render ----------
   return (
     <div className="h-full w-full flex flex-col bg-gray-50 font-sans text-gray-800">
@@ -278,39 +284,44 @@ export default function BoardView() {
       </div>
 
       {/* Modals */}
-      <Modal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        title={editingTask && editingTask.id ? "Edit Story" : "New Story"}
-      >
-        <TaskForm
-          task={
-            editingTask || {
-              id: `temp-${Date.now()}`,
-              title: "",
-              description: "",
-              assignee: "",
-              priority: "Low",
-              architecture: "FE",
-              project: selectedProject?.id || "",
-              status: "to_do",
-            }
-          }
-          onSave={(task) => {
-            handleSaveTask(task);
-            setIsTaskModalOpen(false);
-          }}
-          onCancel={() => setIsTaskModalOpen(false)}
-          features={
-            selectedProject
-              ? featuresByProject(selectedProject.id).map((f) => ({
-                  id: f.id,
-                  name: f.name,
-                }))
-              : []
-          }
-        />
-      </Modal>
+
+      {isTaskModalOpen && (
+        <Modal
+          isOpen={isTaskModalOpen}
+          onClose={() => setIsTaskModalOpen(false)}
+          title={editingTask ? "Edit Task" : "Create Task"}
+        >
+          {featuresLoading ? (
+            <p className="text-center text-gray-500 py-10">Loading features…</p>
+          ) : (
+            <TaskForm
+              task={
+                editingTask || {
+                  id: `temp-${Date.now()}`,
+                  title: "",
+                  description: "",
+                  acceptanceCriteria: "",
+                  assignee: "",
+                  priority: "Low",
+                  architecture: "FE",
+                  project: selectedProject?.id || "",
+                  status: "to_do",
+                  featureId: "",
+                }
+              }
+              onSave={(task) => {
+                handleSaveTask(task);
+                setIsTaskModalOpen(false);
+              }}
+              onCancel={() => setIsTaskModalOpen(false)}
+              features={features.map((f) => ({
+                id: f.id,
+                name: f.name,
+              }))}
+            />
+          )}
+        </Modal>
+      )}
 
       <Modal
         isOpen={isColumnModalOpen}

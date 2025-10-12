@@ -91,18 +91,37 @@ export default function TaskForm({
       project: task.project ?? data.project,
       status: task.status ?? "to_do",
       storyId: task.storyId ?? data.storyId, // BoardView may assign on save if missing
-      featureId: data.featureId ?? task.featureId, // pass chosen feature up
+      featureId: task.featureId ?? data.featureId, // pass chosen feature up
     });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+    <form onSubmit={handleSubmit(onSubmit)}>
       {/* User Story banner */}
-      <div className="mb-5">
-        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 text-sm font-medium">
-          <span className="font-semibold">
-            {task.storyId || (task as any).story_code}
-          </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-gray-700 text-sm font-semibold mb-2">
+            User Story:
+          </label>
+          <p className="w-full bg-indigo-50 text-indigo-700 border border-indigo-100  px-4 py-2 border border-gray-300 rounded-lg focus:outline-none ">
+            {task.storyId || (task as any).story_code || "New Story"}
+          </p>
+        </div>
+
+        {/* Second element: The status select menu */}
+        <div>
+          <label className="block text-gray-700 text-sm font-semibold mb-2">
+            Status
+          </label>
+          <select
+            {...register("status", { required: true })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+            <option value="to_do">To Do</option>
+            <option value="in_progress">In Progress</option>
+            <option value="validation">Validation</option>
+            <option value="done">Done</option>
+          </select>
         </div>
       </div>
 
@@ -114,16 +133,14 @@ export default function TaskForm({
           </label>
           <select
             {...register("featureId", {
-              // Only require if we actually have features to choose from
               required: features.length > 0 ? "Feature is required" : false,
             })}
             aria-invalid={errors.featureId ? "true" : "false"}
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all
-              ${
-                errors.featureId
-                  ? "border-rose-400 focus:ring-rose-500"
-                  : "border-gray-300 focus:ring-blue-500"
-              }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+              errors.featureId
+                ? "border-rose-400 focus:ring-rose-500"
+                : "border-gray-300 focus:ring-blue-500"
+            }`}
           >
             <option value="" disabled>
               — Select a feature —
@@ -141,6 +158,23 @@ export default function TaskForm({
             </p>
           )}
 
+          {/* 🧠 Show selected feature details */}
+          {features.length > 0 && task.featureId && (
+            <div className="mt-3 rounded-md border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm text-indigo-800">
+              <div className="flex flex-col sm:flex-row sm:justify-between">
+                <span className="font-medium">
+                  Feature:{" "}
+                  {features.find((f) => f.id === task.featureId)?.name ??
+                    "— Unknown Feature —"}
+                </span>
+                {task.storyId && (
+                  <span className="font-mono text-indigo-600">
+                    Story ID: {task.storyId}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
           {features.length === 0 && (
             <p className="mt-1 text-xs text-gray-500">
               No features found for this project. Add one in the
@@ -209,21 +243,6 @@ export default function TaskForm({
             rows={3}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
-        </div>
-        {/* Row X: Status */}
-        <div>
-          <label className="block text-gray-700 text-sm font-semibold mb-2">
-            Status
-          </label>
-          <select
-            {...register("status", { required: true })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-          >
-            <option value="to_do">To Do</option>
-            <option value="in_progress">In Progress</option>
-            <option value="validation">Validation</option>
-            <option value="done">Done</option>
-          </select>
         </div>
 
         {/* Row 4: Assignee + Priority */}

@@ -13,14 +13,14 @@ export async function fetchTasksByProject(projectId: string): Promise<Task[]> {
 
 export async function createTask(payload: any): Promise<Task> {
   const userId = getUserId();
-  const res = await api.post("/tasks", { ...payload, user_id: userId });
+  const res = await api.post("/tasks", {
+    ...payload,
+    user_id: userId,
+  });
   return res.data;
 }
 
-export async function updateTask(
-  taskId: string,
-  payload: Partial<Task>
-): Promise<Task> {
+export async function updateTask(taskId: string, payload: any): Promise<Task> {
   const userId = getUserId();
   const res = await api.patch(`/tasks/${taskId}`, {
     ...payload,

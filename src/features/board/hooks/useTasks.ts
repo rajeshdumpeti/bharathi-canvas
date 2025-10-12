@@ -48,9 +48,12 @@ export function useTasks() {
       const payload = {
         title: taskData.title || "",
         description: taskData.description || "",
+        acceptance_criteria: taskData.acceptanceCriteria ?? null,
+        priority: taskData.priority ?? null,
         status: toStatusId(taskData.status),
         assignee: taskData.assignee || "",
         project_id: selectedProject.id,
+        feature_id: taskData.featureId || null,
       };
       const isEdit = taskData.id && !String(taskData.id).startsWith("temp-");
       const created = isEdit
