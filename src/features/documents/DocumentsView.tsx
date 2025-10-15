@@ -1,26 +1,25 @@
-// features/documents/DocumentsView.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
-import { useDocsStore, DocsState } from "stores/docs.store";
+import { debounce } from "lodash";
+import { Modal } from "packages/ui";
+import type { DocItem } from "types/documents";
+import { useDocuments } from "./hooks/useDocuments"; // ✅ new hook
 import UploadCard from "./components/UploadCard";
 import DocumentsList from "./components/DocumentsList";
 import PreviewPane from "./components/PreviewPane";
-import { Modal } from "packages/ui";
-import type { DocItem } from "types/documents";
-import { debounce } from "lodash";
 
 const DocumentsView: React.FC = () => {
-  const { documents, selectedId } = useDocsStore(
-    useShallow((s: DocsState) => ({
-      documents: s.items,
-      selectedId: s.selectedId,
-    }))
-  );
-  const setSelected = useDocsStore((s: DocsState) => s.setSelected);
-  const deleteDoc = useDocsStore((s: DocsState) => s.deleteDocument);
+  const {
+    items: documents,
+    selectedId,
+    setSelected,
+    deleteDocument,
+    projectId,
+    refresh,
+  } = useDocuments(); // ✅ all state from hook + store
 
-  // ⬇️ NEW: replace whole list (rename/move bulk ops)
-  const setItems = useDocsStore((s: DocsState) => (s as any).setItems);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDeleteDocOpen, setIsDeleteDocOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<DocItem | null>(null);
 
   const selectedDoc = useMemo<DocItem | null>(
     () => documents.find((d) => d.id === selectedId) ?? null,
@@ -39,10 +38,6 @@ const DocumentsView: React.FC = () => {
     return arr;
   }, [documents]);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isDeleteDocOpen, setIsDeleteDocOpen] = useState(false);
-  const [docToDelete, setDocToDelete] = useState<DocItem | null>(null);
-
   useEffect(() => {
     const debouncedHandler = debounce(() => {
       setIsSidebarOpen((prev) => !prev);
@@ -59,40 +54,22 @@ const DocumentsView: React.FC = () => {
     setIsDeleteDocOpen(true);
   };
 
-  const handleDeleteDocument = () => {
+  const handleDeleteDocument = async () => {
     if (!docToDelete) return;
-    deleteDoc(docToDelete);
+    await deleteDocument(docToDelete); // ✅ backend delete
     if (selectedId === docToDelete.id) setSelected(null);
     setIsDeleteDocOpen(false);
     setDocToDelete(null);
+    refresh(); // ✅ refresh list after delete
   };
 
-  // ⬇️ NEW: rename project (bulk update)
+  // local rename + move still client-only (optional backend later)
   const renameProject = (oldName: string, newName: string) => {
-    if (!setItems) {
-      console.warn("docs.store: add setItems([...]) action to enable rename.");
-      return;
-    }
-    const next = documents.map((d) => {
-      const p = (d as any).project?.trim?.() ?? "";
-      if (p === oldName) {
-        return { ...d, project: newName } as DocItem & { project?: string };
-      }
-      return d;
-    });
-    setItems(next as any);
+    console.warn("Rename not persisted yet; local only.");
   };
 
-  // ⬇️ NEW: move doc to a project (can be empty string for Unassigned)
   const moveDoc = (docId: string, project: string) => {
-    if (!setItems) {
-      console.warn("docs.store: add setItems([...]) action to enable move.");
-      return;
-    }
-    const next = documents.map((d) =>
-      d.id === docId ? ({ ...d, project } as any) : d
-    );
-    setItems(next as any);
+    console.warn("Move not persisted yet; local only.");
   };
 
   return (
@@ -119,7 +96,6 @@ const DocumentsView: React.FC = () => {
             `}
           >
             <div className="h-full p-4 space-y-6">
-              {/* Upload now supports project selection; see patch #3 */}
               <UploadCard />
               <DocumentsList
                 documents={documents}

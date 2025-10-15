@@ -1,195 +1,99 @@
-// src/stores/docs.store.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { DOCS_NS } from "packages/storage";
-import type { DocItem, DocUploadResult } from "types/documents";
+import type { DocItem } from "types/documents";
+import * as docsApi from "api/documents";
 
 export type DocsState = {
   items: DocItem[];
   selectedId: string | null;
+  loading: boolean;
+  error: string | null;
 
-  pending: File[];
-  error: string;
-
-  // actions
+  // Actions
+  fetchDocuments: (projectId: string) => Promise<void>;
+  uploadDocument: (projectId: string, file: File) => Promise<void>;
+  deleteDocument: (doc: DocItem) => Promise<void>;
   setSelected: (id: string | null) => void;
-  clearSelectedIfDeleted: (deletedId: string) => void;
-
-  stageFiles: (files: File[]) => void;
-  clearPending: () => void;
-  setError: (msg: string) => void;
-  clearError: () => void;
-
-  addDocuments: (files: File[], project?: string) => Promise<void>;
-  deleteDocument: (doc: DocItem) => void;
+  setItems: (docs: DocItem[]) => void;
 };
-
-// namespaced storage (stable reference)
-const namespacedStorage = {
-  getItem: (name: string) => localStorage.getItem(`${DOCS_NS}:${name}`) ?? null,
-  setItem: (name: string, value: string) =>
-    localStorage.setItem(`${DOCS_NS}:${name}`, value),
-  removeItem: (name: string) => localStorage.removeItem(`${DOCS_NS}:${name}`),
-} as const;
-
-const storage = createJSONStorage(() => namespacedStorage);
-
-const MAX = 5 * 1024 * 1024;
-const blobKey = (id: string) => `${DOCS_NS}:blob:${id}`;
-const textKey = (id: string) => `${DOCS_NS}:txt:${id}`;
-
-// ✅ allow images in addition to pdf/docx/txt
-// Accept PDFs, DOCX, TXT, and common images
-const allowMimes = [
-  "application/pdf",
-  "text/plain",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-];
-const byExtOK = (name: string) =>
-  /\.(pdf|txt|docx|png|jpe?g|gif|webp)$/i.test(name);
-
-function readFileAsResult(file: File): Promise<DocUploadResult> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    const isTxt = file.type === "text/plain" || /\.txt$/i.test(file.name);
-    if (isTxt) {
-      reader.onload = () =>
-        resolve({ kind: "txt", text: String(reader.result ?? "") });
-      reader.onerror = reject;
-      reader.readAsText(file);
-      return;
-    }
-    // For everything else (PDF, DOCX, IMAGES) we use dataURL preview
-    reader.onload = () =>
-      resolve({ kind: "data", dataURL: String(reader.result ?? "") });
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 export const useDocsStore = create<DocsState>()(
   persist(
     (set, get) => ({
       items: [],
       selectedId: null,
-      pending: [],
-      error: "",
+      loading: false,
+      error: null,
 
-      setSelected: (id) =>
-        set((s) => (s.selectedId === id ? s : { selectedId: id })),
-
-      clearSelectedIfDeleted: (deletedId) => {
-        const { selectedId, items } = get();
-        if (selectedId === deletedId) {
-          const next = items.find((d) => d.id !== deletedId)?.id ?? null;
-          set({ selectedId: next });
-        }
-      },
-
-      stageFiles: (files) => {
-        if (!files?.length) return;
-        const cur = get().pending;
-        const key = (f: File) => `${f.name}-${f.size}`;
-        const existing = new Set(cur.map(key));
-        const merged = [...cur];
-        files.forEach((f) => {
-          if (!existing.has(key(f))) merged.push(f);
-        });
-        set({ pending: merged, error: "" });
-      },
-      clearPending: () => set({ pending: [] }),
-      setError: (msg) => set({ error: msg }),
-      clearError: () => set({ error: "" }),
-
-      addDocuments: async (files, project) => {
-        if (!files?.length) return;
-
-        // validation
-        for (const f of files) {
-          if (f.size > MAX) {
-            set({ error: `"${f.name}" is larger than 5 MB.` });
-            return;
-          }
-          if (!(allowMimes.includes(f.type) || byExtOK(f.name))) {
-            set({
-              error: `"${f.name}" is not a supported type (PDF, DOCX, TXT, PNG, JPG, GIF, WEBP).`,
-            });
-            return;
-          }
-        }
-
+      async fetchDocuments(projectId) {
         try {
-          const results = await Promise.all(files.map(readFileAsResult));
+          set({ loading: true, error: null });
+          const data = await docsApi.listDocuments(projectId);
+          set({ items: data, loading: false });
+        } catch (err: any) {
+          console.error("❌ fetchDocuments failed", err);
+          set({
+            error: err.message || "Failed to load documents",
+            loading: false,
+          });
+        }
+      },
 
-          const toAdd: DocItem[] = results.map((res, idx) => {
-            const f = files[idx];
-            const id = `${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`;
-            if (res.kind === "data") {
-              try {
-                sessionStorage.setItem(blobKey(id), res.dataURL);
-              } catch {
-                // ignore quota for sessionStorage; if it fails we fall back to persisting null below
-              }
-            } else if (res.kind === "txt") {
-              try {
-                sessionStorage.setItem(textKey(id), res.text);
-              } catch {
-                // ignore
-              }
-            }
-            return {
-              id: `${Date.now()}-${idx}-${Math.random()
-                .toString(36)
-                .slice(2, 7)}`,
-              name: f.name,
-              type:
-                f.type || (f.name.match(/\.(\w+)$/)?.[1] || "").toLowerCase(),
-              size: f.size,
-              createdAt: new Date().toISOString(),
-              dataURL: res.kind === "data" ? res.dataURL : null,
-              text: res.kind === "txt" ? res.text : null,
+      async uploadDocument(projectId, file) {
+        try {
+          set({ loading: true });
 
-              project,
-            };
+          // 1️⃣ Call backend upload
+          const newDoc = await docsApi.uploadDocument(projectId, file);
+
+          // 2️⃣ Generate preview DataURL (for immediate UI display)
+          const previewDataUrl = await new Promise<string | null>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
           });
 
-          const items = [...get().items, ...toAdd];
-          const selectedId = get().selectedId ?? items[0]?.id ?? null;
+          const enrichedDoc = {
+            ...newDoc,
+            name: newDoc.original_name || file.name,
+            type: newDoc.file_type || file.type,
+            size: newDoc.file_size || file.size,
+            dataURL: previewDataUrl,
+          };
 
-          set({ items, selectedId, pending: [], error: "" });
-        } catch (e) {
-          console.error(e);
-          set({ error: "Failed to read one or more files." });
+          // 4️⃣ Update store
+          set({ items: [enrichedDoc, ...get().items], loading: false });
+        } catch (err: any) {
+          console.error("❌ uploadDocument failed", err);
+          set({
+            error: err.message || "Failed to upload document",
+            loading: false,
+          });
         }
       },
 
-      deleteDocument: (doc) =>
-        set((s) => {
-          // clear preview caches
-          sessionStorage.removeItem(blobKey(doc.id));
-          sessionStorage.removeItem(textKey(doc.id));
+      async deleteDocument(doc) {
+        try {
+          await docsApi.deleteDocument(doc.id);
+          const updated = get().items.filter((d) => d.id !== doc.id);
+          set({ items: updated });
+        } catch (err: any) {
+          console.error("❌ deleteDocument failed", err);
+        }
+      },
 
-          const next = s.items.filter((d) => d.id !== doc.id);
-          const nextSelected =
-            s.selectedId === doc.id ? (next[0]?.id ?? null) : s.selectedId;
+      setSelected(id) {
+        set({ selectedId: id });
+      },
 
-          if (next === s.items && nextSelected === s.selectedId) return s;
-          return { items: next, selectedId: nextSelected };
-        }),
+      setItems(docs) {
+        set({ items: docs });
+      },
     }),
     {
-      name: `${DOCS_NS}:store`,
-      version: 1,
-      storage,
-      // ✅ Persist ONLY data, not actions. This avoids rehydrate/set loops.
-      partialize: (s) => ({
-        items: s.items,
-        selectedId: s.selectedId,
-      }),
+      name: "docs-storage",
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

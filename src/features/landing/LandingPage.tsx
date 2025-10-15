@@ -47,19 +47,13 @@ const LandingPage: React.FC<Props> = ({
             Welcome to Bharathi&apos;s Canvas
           </h1>
           <p className="mt-2 text-gray-600 max-w-3xl mx-auto text-base sm:text-lg">
-            A local-first workspace to plan tasks, keep documents, generate
-            release notes, and document architecture & new product ideas — all
-            organized by project.
+            A workspace to plan tasks, keep documents, generate release notes,
+            and document architecture & new product ideas — all organized by
+            project.
           </p>
 
           {/* badges */}
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-              Local storage — your data stays on this device
-            </span>
-            <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-              No backend required
-            </span>
             <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
               Project-centric workflow
             </span>

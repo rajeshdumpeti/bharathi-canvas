@@ -48,7 +48,7 @@ export default function App() {
                 <Route path="board/*" element={<BoardApp />} />
                 {/* <Route path="/board/stories" element={<StoriesView />} />
                 <Route path="board/features" element={<FeatureDashboard />} /> */}
-                <Route path="documents" element={<DocumentsApp />} />
+                <Route path="/documents" element={<DocumentsApp />} />
                 <Route path="release-notes" element={<ReleaseNotesApp />} />
                 <Route path="project-hub" element={<ProjectHubApp />} />
                 <Route path="ideas/*" element={<IdeasApp />} />

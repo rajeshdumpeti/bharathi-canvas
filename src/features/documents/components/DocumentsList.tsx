@@ -1,6 +1,6 @@
-// features/documents/components/DocumentsList.tsx
 import React, { useMemo, useState } from "react";
 import type { DocItem } from "types/documents";
+import { useDocuments } from "../hooks/useDocuments";
 
 const iconFor = (doc: DocItem) => {
   if (/pdf/i.test(doc.type) || /\.pdf$/i.test(doc.name)) return "📄";
@@ -13,12 +13,8 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onConfirmDelete: (doc: DocItem) => void;
-
-  /** New: all distinct project names (derived in parent). */
   projects: string[];
-  /** New: rename a project (parent updates all docs with oldName→newName). */
   onRenameProject: (oldName: string, newName: string) => void;
-  /** New: move a single doc to a different (or new) project. */
   onMoveDoc: (docId: string, project: string) => void;
 };
 
@@ -69,6 +65,8 @@ const DocumentsList: React.FC<Props> = ({
     groups.forEach(([k]) => (init[k] = true));
     return init;
   });
+
+  const { deleteDocument } = useDocuments(); // ✅ integrated backend delete
 
   if (!documents.length) {
     return (
@@ -142,12 +140,13 @@ const DocumentsList: React.FC<Props> = ({
                         <span className="truncate">{d.name}</span>
                       </span>
 
-                      {/* Move & Delete */}
+                      {/* Delete */}
                       <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             onConfirmDelete(d);
+                            deleteDocument(d); // ✅ call backend delete
                           }}
                           className={`p-1 rounded ${
                             selectedId === d.id
