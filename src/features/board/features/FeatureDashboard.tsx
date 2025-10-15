@@ -6,9 +6,11 @@ import FeatureForm from "./FeatureForm";
 import FeatureRow from "./FeatureRow";
 import { FiPlus } from "react-icons/fi";
 import Modal from "components/ui/Modal"; // adjust import path if needed
+import { useBoardActions } from "../hooks/useBoardActions";
 
 export default function FeatureDashboard() {
   const [search] = useSearchParams();
+  const { selectedProject } = useBoardActions();
   const [showForm, setShowForm] = useState(false);
   const projectId = search.get("project") ?? "";
 
@@ -28,9 +30,11 @@ export default function FeatureDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4">
-      <div className="sticky top-0 z-10 -mx-4 sm:mx-0 bg-gray-50/80 backdrop-blur supports-[backdrop-filter]:bg-gray-50/60 border-b">
+      <div className="sticky top-0 z-10 -mx-4 sm:mx-0 border-b ">
         <div className="px-4 sm:px-0 py-3 flex flex-row items-center justify-between">
-          <h1 className="text-2xl font-bold">Features</h1>
+          <span className="font-bold">
+            {selectedProject.name.toUpperCase()} B
+          </span>
           <button
             onClick={handleCreateFeature}
             className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
@@ -38,6 +42,7 @@ export default function FeatureDashboard() {
             <FiPlus className="h-4 w-4" /> New Feature
           </button>
         </div>
+        <h4 className="text-2xl font-bold">Backlog</h4>
       </div>
 
       {isLoading ? (
