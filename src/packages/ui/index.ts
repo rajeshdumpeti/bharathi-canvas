@@ -1,6 +1,6 @@
 export { default as Modal } from "../../components/ui/Modal";
 export { default as IconButton } from "../../components/ui/IconButton";
-export { default as ChipInput } from "../../components/ui/ChipInput";
+export { default as ChipInput } from "../../components/ui/typography/ChipInput";
 export { default as SecretText } from "../../components/ui/SecretText";
 export { default as SectionHeader } from "../../components/ui/SectionHeader";
 export { default as LogoWordmark } from "../../components/ui/LogoWordmark";

@@ -28,7 +28,12 @@ const AppShell: React.FC = () => {
           label: "Documents",
         },
         { to: "/release-notes", label: "Release Notes" },
-        { to: "/project-hub", label: "Project Hub" },
+        {
+          to: selectedProjectId
+            ? `/project-hub?project=${selectedProjectId}`
+            : "/project-hub",
+          label: "Project Hub",
+        },
         { to: "/ideas", label: "Innovation Lab" },
       ]
     : [];

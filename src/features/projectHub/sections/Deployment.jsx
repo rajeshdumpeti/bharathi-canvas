@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import useProjectHub from "../../../hooks/useProjectHub";
+import useProjectHub from "../hooks/useProjectHub";
 import IconButton from "../../../components/ui/IconButton";
-import ChipInput from "../../../components/ui/ChipInput";
+import ChipInput from "../../../components/ui/typography/ChipInput";
 import defaultDeploymentGuide from "../constants/defaultDeploymentGuide";
 
 /* Local tiny helpers (kept simple & self-contained) */

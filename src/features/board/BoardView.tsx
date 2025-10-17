@@ -13,6 +13,7 @@ import { toStatusId } from "utils/statusUtils";
 import { normalizeColumns } from "utils/columns";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFeaturesByProject } from "api/features";
+import { Button } from "components/ui/index";
 
 export default function BoardView() {
   const [columns, setColumns] = useState<BoardColumn[]>(DEFAULT_COLUMNS);
@@ -124,15 +125,16 @@ export default function BoardView() {
                       <h1 className="text-2xl font-bold text-gray-900">
                         {`${selectedProject.name} Project`}
                       </h1>
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => {
                           handleAddTask("to_do");
                           setIsTaskModalOpen(true);
                         }}
-                        className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
                       >
                         Create Story
-                      </button>
+                      </Button>
                     </div>
                     <div className="flex w-full justify-between sm:justify-end sm:gap-2">
                       <Link
