@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import useProjectHub from '../../../hooks/useProjectHub';
+import useProjectHub from '../hooks/useProjectHub';
 import MarkdownEditor from '../components/MarkdownEditor';
 import MarkdownView from '../components/MarkdownView';
 

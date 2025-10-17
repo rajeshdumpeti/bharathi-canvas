@@ -1,5 +1,5 @@
 import React from "react";
-import useProjectHub from "../../hooks/useProjectHub";
+import useProjectHub from "../../features/projectHub/hooks/useProjectHub";
 
 type Props = { title: string; right?: React.ReactNode };
 
