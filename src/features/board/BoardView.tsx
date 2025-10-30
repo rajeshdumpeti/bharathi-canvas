@@ -154,7 +154,7 @@ export default function BoardView() {
                       >
                         Add Column
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => {
                           confirmDeleteProject(selectedProject);
                           setIsProjectDeleteModalOpen(true);
@@ -162,7 +162,7 @@ export default function BoardView() {
                         className="rounded-md border px-2 py-1 text-sm text-rose-700 hover:bg-rose-50"
                       >
                         Delete Project
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 )}

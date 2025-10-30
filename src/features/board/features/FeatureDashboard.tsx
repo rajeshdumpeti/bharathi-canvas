@@ -30,11 +30,9 @@ export default function FeatureDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4">
-      <div className="sticky top-0 z-10 -mx-4 sm:mx-0 border-b ">
+      <div className="sticky top-0 z-10 -mx-4 sm:mx-0 border-b bg-white px-4">
         <div className="px-4 sm:px-0 py-3 flex flex-row items-center justify-between">
-          <span className="font-bold">
-            {selectedProject.name.toUpperCase()} B
-          </span>
+          <span className="font-bold">Board Name: {selectedProject.name}</span>
           <button
             onClick={handleCreateFeature}
             className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"

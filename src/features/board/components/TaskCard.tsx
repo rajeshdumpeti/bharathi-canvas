@@ -43,7 +43,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         {/* Delete icon (doesn't trigger onEdit / drag) */}
-        {onDelete && (
+        {/* {onDelete && (
           <button
             type="button"
             aria-label="Delete story"
@@ -55,7 +55,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           >
             <FiTrash2 className="h-4 w-4" />
           </button>
-        )}
+        )} */}
       </div>
 
       <h4 className="font-semibold text-gray-900">{task.title}</h4>

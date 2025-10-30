@@ -212,6 +212,7 @@ export default function TaskForm({
             >
               <option value="FE">Frontend</option>
               <option value="BE">Backend</option>
+              <option value="FE-BE">Frontend + Backend</option>
               <option value="DB">Database</option>
               <option value="ARCH">Architecture</option>
               <option value="MISC">Miscellaneous</option>

@@ -6,7 +6,6 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiEdit2,
-  FiTrash2,
   FiExternalLink,
 } from "react-icons/fi";
 import FeatureForm from "./FeatureForm";
@@ -57,12 +56,7 @@ export default function FeatureRow({
           >
             <FiEdit2 className="h-4 w-4" /> Edit
           </button>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="flex items-center gap-1 rounded-md border px-2 py-1 text-sm text-rose-700 hover:bg-rose-50"
-          >
-            <FiTrash2 className="h-4 w-4" /> Delete
-          </button>
+
           <button
             onClick={() =>
               (window.location.href = `/board?project=${feature.projectId}`)
@@ -78,7 +72,7 @@ export default function FeatureRow({
       {open && (
         <div className="p-5 space-y-4 bg-white">
           <FeatureSection title="Feature Details" content={feature.details} />
-          <FeatureSection title="User Story" content={feature.userStory} />
+          {/* <FeatureSection title="User Story" content={feature.userStory} />
           <FeatureSection
             title="Core Requirements"
             content={feature.coreRequirements}
@@ -90,7 +84,7 @@ export default function FeatureRow({
           <FeatureSection
             title="Technical Notes"
             content={feature.technicalNotes}
-          />
+          /> */}
 
           {/* 🧩 Added: User Stories from backend */}
           <FeatureStories featureId={feature.id} />

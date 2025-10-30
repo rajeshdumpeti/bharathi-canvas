@@ -64,10 +64,6 @@ export default function FeatureForm({ projectId, onClose, feature }: Props) {
         {[
           ["name", "Feature Name"],
           ["details", "Feature Details"],
-          ["userStory", "User Story"],
-          ["coreRequirements", "Core Requirements"],
-          ["acceptanceCriteria", "Acceptance Criteria"],
-          ["technicalNotes", "Technical Notes"],
         ].map(([key, label]) => (
           <div key={key}>
             <label className="block text-md font-bold text-gray-700">
