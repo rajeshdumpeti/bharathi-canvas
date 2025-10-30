@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FiDownload } from "react-icons/fi";
 
-type StatusId = "to-do" | "in-progress" | "validation" | "done";
+type StatusId = "to_do" | "in_progress" | "validation" | "done";
 
 type Task = {
   id: string;
@@ -29,8 +29,8 @@ type Props = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  "to-do": "To Do",
-  "in-progress": "In Progress",
+  to_do: "To Do",
+  in_progress: "In Progress",
   validation: "Validation",
   done: "Done",
 };

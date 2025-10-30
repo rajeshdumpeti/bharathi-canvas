@@ -3,8 +3,7 @@ export type SectionKey =
   | "architecture"
   | "database"
   | "links"
-  | "deployment"
-  | "issues"
+  | "deploymentGuide"
   | "pocs"
   | "screenshots"
   | "revenue"
@@ -13,8 +12,7 @@ export type SectionKey =
   | "demand"
   | "tech"
   | "releases"
-  | "ux"
-  | "documents";
+  | "ux";
 
 export type SectionDef = {
   key: SectionKey;
@@ -47,4 +45,14 @@ export type ProjectHubContextValue = {
   updateSection: (sectionKey: string, data: unknown) => void;
 
   refresh: () => void;
+};
+
+export type ProjectHubSection = {
+  id: string;
+  project_id: string;
+  section_type: string;
+  content: Record<string, any>;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
 };

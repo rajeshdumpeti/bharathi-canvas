@@ -1,4 +1,4 @@
-export type StatusId = "to-do" | "in-progress" | "validation" | "done";
+export type StatusId = "to_do" | "in_progress" | "validation" | "done";
 
 export interface Project {
   id: string;

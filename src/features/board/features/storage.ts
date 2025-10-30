@@ -23,7 +23,7 @@ type BoardTask = {
   project: string;
   storyId?: string; // human id like US234567
   title: string;
-  status: "to-do" | "in-progress" | "validation" | "done";
+  status: "to_do" | "in_progress" | "validation" | "done";
   assignee?: string;
   priority?: "High" | "Medium" | "Low" | string;
   createdAt?: string;
@@ -36,8 +36,8 @@ const S2T: Record<
   "To Do" | "In Progress" | "Validation" | "Done",
   BoardTask["status"]
 > = {
-  "To Do": "to-do",
-  "In Progress": "in-progress",
+  "To Do": "to_do",
+  "In Progress": "in_progress",
   Validation: "validation",
   Done: "done",
 };
@@ -45,8 +45,8 @@ const T2S: Record<
   BoardTask["status"],
   "To Do" | "In Progress" | "Validation" | "Done"
 > = {
-  "to-do": "To Do",
-  "in-progress": "In Progress",
+  to_do: "To Do",
+  in_progress: "In Progress",
   validation: "Validation",
   done: "Done",
 };
@@ -93,7 +93,7 @@ export function syncStoryToBoard(story: Story, projectId: string) {
     project: projectId,
     storyId: humanId,
     title: story.title,
-    status: S2T[story.status as keyof typeof S2T] ?? "to-do",
+    status: S2T[story.status as keyof typeof S2T] ?? "to_do",
     createdAt: story.createdAt,
   };
 

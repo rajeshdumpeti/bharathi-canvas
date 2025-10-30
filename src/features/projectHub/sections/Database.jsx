@@ -1,9 +1,9 @@
 // src/features/projectHub/sections/Database.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import useProjectHub from "../../../hooks/useProjectHub";
-import IconButton from "../../../components/ui/IconButton";
-import ChipInput from "../../../components/ui/ChipInput";
-import databaseDefault from "../constants/databaseDefault";
+import useProjectHub from "../hooks/useProjectHub";
+import { IconButton } from "components/ui/index";
+import ChipInput from "components/ui/typography/ChipInput"
+import { DEFAULT_DATABASE } from "../constants/databaseDefault";
 
 /* utilities */
 const RowBtn = ({ onClick, children }) => (
@@ -198,15 +198,15 @@ export default function Database() {
             selected?.sections?.database &&
                 typeof selected.sections.database === "object"
                 ? selected.sections.database
-                : databaseDefault,
+                : DEFAULT_DATABASE,
         [selected]
     );
 
     const [mode, setMode] = useState("read");
-    const [form, setForm] = useState(databaseDefault);
+    const [form, setForm] = useState(DEFAULT_DATABASE);
 
     useEffect(() => {
-        setForm(saved || databaseDefault);
+        setForm(saved || DEFAULT_DATABASE);
         setMode("read");
     }, [saved, selected?.id]);
 

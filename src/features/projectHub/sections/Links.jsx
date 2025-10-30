@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import useProjectHub from "../../../hooks/useProjectHub";
+import useProjectHub from "../hooks/useProjectHub";
 import IconButton from "../../../components/ui/IconButton";
-import ChipInput from "../../../components/ui/ChipInput";
+import ChipInput from "../../../components/ui/typography/ChipInput";
 
 /** ---------- defaults (kept local for this section) ---------- */
 const defaultLinks = {

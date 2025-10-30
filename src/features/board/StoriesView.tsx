@@ -1,113 +1,97 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { storage, BOARD_NS } from "packages/storage";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import ExportStoriesBar from "./components/ExportStoriesBar";
-
-type StatusId = "to-do" | "in-progress" | "validation" | "done";
-
-type Task = {
-  id: string;
-  project?: string;
-  storyId?: string;
-  title?: string;
-  status?: StatusId | string;
-  assignee?: string;
-  priority?: "High" | "Medium" | "Low" | string;
-  createdAt?: string;
-  completedAt?: string;
-  acceptanceCriteria?: string;
-};
-
-type Project = {
-  id: string;
-  name: string;
-  columns?: { id: string; title: string }[];
-};
-
-const STATUSES: { id: StatusId; label: string }[] = [
-  { id: "to-do", label: "To Do" },
-  { id: "in-progress", label: "In Progress" },
-  { id: "validation", label: "Validation" },
-  { id: "done", label: "Done" },
-];
+import { useProjectStore } from "stores/projectStore";
+import { useTaskStore } from "stores/taskStore";
+import { toColumnTitle } from "utils/statusUtils";
 
 const STATUS_COLORS: Record<string, string> = {
-  "to-do": "bg-gray-100 text-gray-700",
-  "in-progress": "bg-blue-100 text-blue-700",
+  to_do: "bg-gray-100 text-gray-700",
+  in_progress: "bg-blue-100 text-blue-700",
   validation: "bg-amber-100 text-amber-700",
   done: "bg-green-100 text-green-700",
 };
 
-function readBoard<T>(key: string, fallback: T): T {
-  try {
-    const v = storage.get<T>(BOARD_NS, key, fallback);
-    return v ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export default function StoriesView() {
-  const [tasks, setTasks] = useState<Task[]>(() =>
-    readBoard<Task[]>("tasks", [])
-  );
-  const [projects, setProjects] = useState<Project[]>(() =>
-    readBoard<Project[]>("projects", [])
-  );
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(() =>
-    readBoard<string>("selectedProjectId", "")
-  );
-  const [q, setQ] = useState<string>("");
-  const [status, setStatus] = useState<string>("all");
+  const navigate = useNavigate();
+  const [search] = useSearchParams();
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("all");
 
-  // refresh from storage when page mounts
+  const { projects, selectedProjectId, selectProject, loadProjects } =
+    useProjectStore();
+
+  const { tasksByProject, loadTasks } = useTaskStore();
+
+  // 🧠 Load projects on mount if not yet loaded
   useEffect(() => {
-    setTasks(readBoard<Task[]>("tasks", []));
-    setProjects(readBoard<Project[]>("projects", []));
-    setSelectedProjectId(readBoard<string>("selectedProjectId", ""));
-  }, []);
+    if (projects.length === 0) loadProjects();
+  }, [projects.length, loadProjects]);
+
+  // 🧠 Determine which project is active from URL (?project=)
+  useEffect(() => {
+    const pid = search.get("project");
+    if (pid && pid !== selectedProjectId) {
+      selectProject(pid);
+      loadTasks(pid);
+    }
+  }, [search, selectedProjectId, selectProject, loadTasks]);
+
+  const selectedProject =
+    projects.find((p) => p.id === selectedProjectId) || null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const tasks = selectedProject ? tasksByProject[selectedProject.id] || [] : [];
+
+  // 🧠 Filter logic
+  const stableTasks = useMemo(() => tasks || [], [tasks]);
 
   const filtered = useMemo(() => {
-    const needle = (q || "").toLowerCase();
-    return tasks
+    const needle = q.toLowerCase();
+    return stableTasks
       .filter((t) => {
-        if (selectedProjectId && t.project !== selectedProjectId) return false;
         if (status !== "all" && t.status !== status) return false;
         if (!needle) return true;
         const hay =
-          `${t.storyId || ""} ${t.title || ""} ${t.assignee || ""} ${t.acceptanceCriteria || ""}`.toLowerCase();
+          `${t.story_code || ""} ${t.title || ""} ${t.assignee || ""} ${
+            t.acceptanceCriteria || ""
+          }`.toLowerCase();
         return hay.includes(needle);
       })
-      .sort((a, b) => (a.storyId || "").localeCompare(b.storyId || ""));
-  }, [tasks, q, status, selectedProjectId]);
+      .sort((a, b) => (a.story_code || "").localeCompare(b.story_code || ""));
+  }, [stableTasks, q, status]);
+
+  const handleBackToBoard = () => {
+    if (selectedProjectId) {
+      navigate(`/board?project=${selectedProjectId}`);
+    } else {
+      navigate("/board");
+    }
+  };
 
   return (
     <div className="h-full w-full flex flex-col bg-gray-50">
       <div className="bg-white border-b">
         <div className="mx-auto w-full max-w-7xl flex items-center justify-between py-4">
           <h1 className="text-2xl font-semibold text-gray-900">User Stories</h1>
-          <Link
-            to="/board"
+          <button
+            onClick={handleBackToBoard}
             className="px-3 py-1.5 rounded border bg-white hover:bg-gray-50 text-gray-700"
           >
             Back to Board
-          </Link>
+          </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto">
         <div className="mx-auto w-full max-w-7xl p-6 space-y-4">
-          <ExportStoriesBar
-            project={projects.find((p) => p.id === selectedProjectId) || null}
-            items={filtered}
-          />
+          <ExportStoriesBar project={selectedProject} items={filtered} />
 
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by title, user story ID and Name "
+              placeholder="Search by title, story code, or assignee"
               className="flex-1 rounded border px-3 py-2"
             />
             <select
@@ -116,15 +100,18 @@ export default function StoriesView() {
               className="rounded border px-3 py-2"
             >
               <option value="all">All statuses</option>
-              {STATUSES.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
+              {["to_do", "in_progress", "validation", "done"].map((s) => (
+                <option key={s} value={s}>
+                  {toColumnTitle(s as any)}
                 </option>
               ))}
             </select>
             <select
               value={selectedProjectId || ""}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
+              onChange={(e) => {
+                selectProject(e.target.value);
+                loadTasks(e.target.value);
+              }}
               className="rounded border px-3 py-2"
             >
               <option value="">All projects</option>
@@ -141,7 +128,7 @@ export default function StoriesView() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
-                  <th className="text-left p-3 w-28">Story ID</th>
+                  <th className="text-left p-3 w-28">Story Code</th>
                   <th className="text-left p-3">Title</th>
                   <th className="text-left p-3">Assignee</th>
                   <th className="text-left p-3 w-40">Status</th>
@@ -160,7 +147,7 @@ export default function StoriesView() {
                   filtered.map((t) => (
                     <tr key={t.id} className="border-t">
                       <td className="p-3 font-mono text-blue-700">
-                        {t.storyId || "—"}
+                        {t.story_code || "—"}
                       </td>
                       <td className="p-3">
                         <div className="font-medium text-gray-900">
@@ -169,22 +156,14 @@ export default function StoriesView() {
                       </td>
                       <td className="p-3">{t.assignee || "—"}</td>
                       <td className="p-3">
-                        {(() => {
-                          const label =
-                            STATUSES.find((s) => s.id === t.status)?.label ||
-                            (t.status as string) ||
-                            "—";
-                          const color =
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
                             STATUS_COLORS[t.status || ""] ||
-                            "bg-gray-200 text-gray-800";
-                          return (
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${color}`}
-                            >
-                              {label}
-                            </span>
-                          );
-                        })()}
+                            "bg-gray-200 text-gray-800"
+                          }`}
+                        >
+                          {toColumnTitle(t.status as any)}
+                        </span>
                       </td>
                       <td className="p-3">{t.priority || "—"}</td>
                       <td className="p-3">

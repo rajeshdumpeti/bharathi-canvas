@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SidebarProps } from "types/sidebar";
+import { useProjectStore } from "stores/projectStore";
 
 const Sidebar: React.FC<SidebarProps> = ({
   projects,
@@ -14,7 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [newProjectName, setNewProjectName] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { selectProject } = useProjectStore();
   // Are we currently on the Features view?
   const isFeatures = location.pathname.startsWith("/board/features");
 
@@ -24,9 +25,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const projectTasks = tasks.filter(
     (t) => selectedProject && t.project === selectedProject.id
   );
-  const todoCount = projectTasks.filter((t) => t.status === "to-do").length;
+  const todoCount = projectTasks.filter((t) => t.status === "to_do").length;
   const inProgressCount = projectTasks.filter(
-    (t) => t.status === "in-progress"
+    (t) => t.status === "in_progress"
   ).length;
   const doneCount = projectTasks.filter((t) => t.status === "done").length;
   const totalTasks = projectTasks.length;
@@ -123,7 +124,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   : "hover:bg-gray-700"
               }`}
               onClick={() => {
-                onSelectProject(project);
+                selectProject(project.id);
+                onSelectProject(project); // optional callback for parent
                 const base = isFeatures ? "/board/features" : "/board";
                 navigate(`${base}?project=${project.id}`);
                 onToggleSidebar();

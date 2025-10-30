@@ -1,5 +1,5 @@
 // src/types/board.ts
-export type Status = "to-do" | "in-progress" | "validation" | "done";
+export type Status = "to_do" | "in_progress" | "validation" | "done";
 
 export type Priority = "High" | "Medium" | "Low";
 export type Tech = "FE" | "BE" | "DB" | "ARCH" | "MISC";
@@ -17,20 +17,21 @@ export interface Project {
 
 export interface Task {
   id: string;
-  project: string; // project id
+  project: string;
   status: Status | string;
-
   title: string;
   description?: string;
   acceptanceCriteria?: string;
-
   assignee?: string;
   priority: Priority;
   architecture: Tech;
 
-  storyId?: string; // e.g., "US234567"
-  createdAt?: string; // ISO date
-  dueDate?: string; // ISO date
+  // ✅ Support both backend & frontend naming
+  storyId?: string;
+  story_code?: string;
+
+  createdAt?: string;
+  dueDate?: string;
   completedAt?: string | null;
 }
 
