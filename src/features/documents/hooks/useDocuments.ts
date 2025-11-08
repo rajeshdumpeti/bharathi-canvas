@@ -32,7 +32,7 @@ export function useDocuments() {
     if (!projects || projects.length === 0) {
       loadProjects();
     }
-  }, [projects?.length, loadProjects]);
+  }, [projects.length, loadProjects, projects]);
 
   // If route has a projectId, keep store in sync with it
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import ExportStoriesBar from "./components/ExportStoriesBar";
 import { useProjectStore } from "stores/projectStore";
 import { useTaskStore } from "stores/taskStore";

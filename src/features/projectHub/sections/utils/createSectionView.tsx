@@ -49,7 +49,7 @@ export function createSectionView({
           setForm(defaultValue);
         })
         .finally(() => setLoading(false));
-    }, [getSection, projectId]);
+    }, [getSection, projectId, saveSection]);
 
     const patch = (p: any) => setForm((f: any) => ({ ...f, ...p }));
 
