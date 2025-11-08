@@ -13,7 +13,6 @@ const DocumentsView: React.FC = () => {
     selectedId,
     setSelected,
     deleteDocument,
-    projectId,
     refresh,
   } = useDocuments(); // ✅ all state from hook + store
 

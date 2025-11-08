@@ -1,6 +1,5 @@
 import React from "react";
 import type { Task } from "../../../types/board";
-import { FiTrash2 } from "react-icons/fi";
 
 const priorityColors: Record<NonNullable<Task["priority"]>, string> = {
   High: "border-l-4 border-red-500",

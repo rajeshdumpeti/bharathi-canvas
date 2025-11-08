@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useProjectStore } from "stores/projectStore";
 import type { SectionDef, SectionKey } from "types/project-hub";
 

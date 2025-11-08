@@ -79,7 +79,7 @@ function ProjectHubInner() {
     if (!selectedProjectId && projects.length > 0) {
       selectProject(projects[0].id);
     }
-  }, [projects, selectedProjectId]);
+  }, [projects, selectProject, selectedProjectId]);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
 

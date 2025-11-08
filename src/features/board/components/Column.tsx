@@ -1,7 +1,6 @@
 import React from "react";
 import TaskCard from "./TaskCard";
 import type { ColumnProps } from "../../../types/board";
-import { FiTrash2 } from "react-icons/fi";
 
 const Column: React.FC<ColumnProps> = ({
   title,

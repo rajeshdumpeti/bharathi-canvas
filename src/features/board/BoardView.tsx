@@ -31,7 +31,6 @@ export default function BoardView() {
     setEditingTask,
     editingTask,
     projectToDelete,
-    confirmDeleteProject,
     handleDeleteProject,
   } = useBoardActions();
 
