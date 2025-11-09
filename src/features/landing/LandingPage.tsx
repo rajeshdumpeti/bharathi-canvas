@@ -108,7 +108,7 @@ const LandingPage: React.FC<Props> = ({
   return (
     <div className="bg-gradient-to-b from-[#3b3b9a] via-[#2a2a6a] to-[#1a1a3a] text-white">
       <div className="min-h-screen flex flex-col items-center p-6 md:p-4  text-center">
-        <div className="mb-4">
+        <div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white">
             Welcome to Bharathi&apos;s Canvas
           </h1>
