@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "lib/auth/AuthProvider";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -53,7 +53,6 @@ const StrengthRule: React.FC<{ text: string; isMet: boolean }> = ({
 
 export default function Register() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // <-- NEW
 

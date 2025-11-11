@@ -28,6 +28,7 @@ export default function SignIn() {
   const [searchParams] = useSearchParams(); // <-- NEW
 
   const location = useLocation();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [successMsg, setSuccessMsg] = useState<string | null>(
     location.state?.message || null
   );
