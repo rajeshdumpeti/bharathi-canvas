@@ -7,6 +7,8 @@ import SignIn from "features/auth/SignIn";
 import Register from "features/auth/Register";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "lib/query/client";
+import ForgotPasswordPage from "features/auth/ForgotPasswordPage";
+import ResetPasswordPage from "features/auth/ResetPasswordPage";
 // import HealthBadge from "components/ui/HealthBadge";
 
 // Lazy app entrypoints (one chunk per app)
@@ -45,6 +47,11 @@ export default function App() {
                 <Route index element={<LandingWithNav />} />
                 <Route path="signin" element={<SignIn />} />
                 <Route path="register" element={<Register />} />
+                <Route
+                  path="/forgot-password"
+                  element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="board/*" element={<BoardApp />} />
                 {/* <Route path="/board/stories" element={<StoriesView />} />
                 <Route path="board/features" element={<FeatureDashboard />} /> */}

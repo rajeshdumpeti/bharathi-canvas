@@ -1,15 +1,21 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import { useAuth } from "lib/auth/AuthProvider";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "lib/api"; // ⬅️ add this import
+import { api } from "lib/api";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 // --- form schema ---
 const SignInSchema = z.object({
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Minimum 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 type SignInForm = z.infer<typeof SignInSchema>;
 
@@ -18,12 +24,35 @@ export default function SignIn() {
   const navigate = useNavigate();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false); // <-- NEW
+  const [searchParams] = useSearchParams(); // <-- NEW
+
+  const location = useLocation();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [successMsg, setSuccessMsg] = useState<string | null>(
+    location.state?.message || null
+  );
+
+  // Clear the location state after reading it so it doesn't reappear on refresh
+  React.useEffect(() => {
+    if (location.state?.message) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignInForm>({ resolver: zodResolver(SignInSchema) });
+  } = useForm<SignInForm>({
+    resolver: zodResolver(SignInSchema),
+    mode: "onChange", // <-- CHANGED
+    // <-- NEW: Pre-fill from query params
+    defaultValues: {
+      email: searchParams.get("email") ?? "",
+      password: searchParams.get("password") ?? "",
+    },
+  });
 
   const onSubmit = async (data: SignInForm) => {
     setErrorMsg(null);
@@ -53,7 +82,6 @@ export default function SignIn() {
         last_name?: string;
       };
 
-      // 4) Update client auth context & redirect
       // 4) Update client auth context
       const displayName =
         (me.first_name || "") && (me.last_name || "")
@@ -101,6 +129,13 @@ export default function SignIn() {
             Use your email & password
           </p>
 
+          {successMsg && (
+            <div className="mb-4 rounded-md bg-green-50 text-green-700 px-3 py-2 text-sm">
+              {successMsg}
+            </div>
+          )}
+          {/* --- END NEW --- */}
+
           {errorMsg && (
             <div className="mb-4 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm">
               {errorMsg}
@@ -122,28 +157,42 @@ export default function SignIn() {
               )}
             </div>
 
-            <div>
+            {/* */}
+            <div className="relative">
               <input
                 {...register("password")}
-                type="password"
+                type={showPassword ? "text" : "password"} // <-- CHANGED
                 placeholder="Password"
                 className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            <div className="text-sm mb-2">
               <button
                 type="button"
-                onClick={() => alert("Forgot password flow not wired yet.")}
+                onClick={() => setShowPassword(!showPassword)} // <-- NEW
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? ( // <-- NEW
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {/* */}
+            {errors.password && (
+              <p className="-mt-3 text-xs text-red-600">
+                {errors.password.message}
+              </p>
+            )}
+            {/* */}
+
+            <div className="text-sm mb-2">
+              <Link
+                to="/forgot-password"
                 className="text-indigo-600 hover:underline"
               >
                 Forget Your Password?
-              </button>
+              </Link>
             </div>
 
             <button
