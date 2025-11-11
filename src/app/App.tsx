@@ -51,7 +51,7 @@ export default function App() {
                   path="forgot-password"
                   element={<ForgotPasswordPage />}
                 />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="reset-password" element={<ResetPasswordPage />} />
                 <Route path="board/*" element={<BoardApp />} />
                 {/* <Route path="/board/stories" element={<StoriesView />} />
                 <Route path="board/features" element={<FeatureDashboard />} /> */}
