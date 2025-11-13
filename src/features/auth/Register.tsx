@@ -221,7 +221,13 @@ export default function Register() {
               </span>
               <button
                 type="button"
-                onClick={() => navigate("/signin")}
+                onClick={() =>
+                  navigate("/signin", {
+                    state: {
+                      message: "Registration successful. Please sign in.",
+                    },
+                  })
+                }
                 className="ml-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 underline"
               >
                 Sign In

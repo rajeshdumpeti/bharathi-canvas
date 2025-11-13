@@ -2,7 +2,7 @@ import React from "react";
 import DocxRenderer from "./DocxRenderer";
 import { EmptyState } from "packages/ui";
 import type { DocItem } from "types/documents";
-import { DOCS_NS } from "packages/storage"; // at top if not already
+import { DOCS_NS } from "stores/docs.store"; // <-- FIX: Import from store
 
 const DocumentEmptyState: React.FC = () => (
   <EmptyState
@@ -36,40 +36,46 @@ const PreviewPane: React.FC<Props> = ({ doc }) => {
     /image\/(png|jpe?g|gif|webp)/i.test(doc.type) ||
     /\.(png|jpe?g|gif|webp)$/i.test(doc.name);
 
-  // ...
-
+  // --- FIX: Read from session storage with the correct key ---
   const cachedDataURL =
     doc.dataURL ?? sessionStorage.getItem(`${DOCS_NS}:blob:${doc.id}`) ?? null;
   const cachedText =
     doc.text ?? sessionStorage.getItem(`${DOCS_NS}:txt:${doc.id}`) ?? null;
+  // --- END FIX ---
 
   return (
     <div className="rounded-lg border bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold truncate pr-4">{doc.name}</h2>
+
+        {/* FIX: Use normalized 'size' property */}
         <div className="text-xs text-gray-500">
           {(doc.size / 1024 / 1024).toFixed(2)} MB
         </div>
       </div>
-      {isPDF && doc.dataURL && (
+
+      {/* FIX: Check cachedDataURL, not doc.dataURL */}
+      {isPDF && cachedDataURL && (
         <iframe
           title={doc.name}
           src={cachedDataURL}
           className="w-full h-[70vh] rounded border"
         />
       )}
+
       {isTXT && (
         <pre className="w-full h-[70vh] overflow-auto bg-gray-50 p-4 rounded text-sm whitespace-pre-wrap">
           {cachedText ?? "(empty file)"}
         </pre>
       )}
+
       {isDOCX && cachedDataURL && (
         <DocxRenderer
           dataURL={cachedDataURL}
           className="h-[70vh] overflow-auto rounded border bg-white"
         />
       )}
-      {/* Image preview */}
+
       {isImage && cachedDataURL && (
         <img
           src={cachedDataURL}
@@ -78,7 +84,8 @@ const PreviewPane: React.FC<Props> = ({ doc }) => {
         />
       )}
 
-      {(isDOCX || isImage) && !doc.dataURL && (
+      {/* FIX: Check cachedDataURL, not doc.dataURL */}
+      {(isDOCX || isImage || isPDF) && !cachedDataURL && (
         <div className="p-6 text-center text-gray-600">
           Preview not available.
         </div>

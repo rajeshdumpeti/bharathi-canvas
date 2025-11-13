@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import type { DocItem } from "types/documents";
-import { useDocuments } from "../hooks/useDocuments";
+import type { Project } from "types/board"; // <-- FIX: Import Project type
 
 const iconFor = (doc: DocItem) => {
   if (/pdf/i.test(doc.type) || /\.pdf$/i.test(doc.name)) return "📄";
@@ -13,28 +13,43 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onConfirmDelete: (doc: DocItem) => void;
-  projects: string[];
+  projects: Project[]; // <-- FIX: Changed from string[] to Project[]
   onRenameProject: (oldName: string, newName: string) => void;
   onMoveDoc: (docId: string, project: string) => void;
 };
 
-function useGroups(docs: DocItem[]) {
+// --- FIX: This function now groups by project_id ---
+function useGroups(docs: DocItem[], projects: Project[]) {
+  // Create a quick lookup map for project names
+  const projectMap = useMemo(
+    () => new Map(projects.map((p) => [p.id, p.name])),
+    [projects]
+  );
+
   return useMemo(() => {
     const map = new Map<string, DocItem[]>();
+
     for (const d of docs) {
-      const key =
-        (typeof (d as any).project === "string" && (d as any).project.trim()) ||
-        "Unassigned";
+      // Use the project_id as the key
+      const key = d.project_id || "Unassigned";
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(d);
     }
-    return Array.from(map.entries()).sort(([a], [b]) => {
-      if (a === "Unassigned") return 1;
-      if (b === "Unassigned") return -1;
-      return a.localeCompare(b);
-    });
-  }, [docs]);
+
+    // Convert map to array and use projectMap to get the name
+    return Array.from(map.entries())
+      .map(([projectId, docs]) => {
+        const name = projectMap.get(projectId) || "Unassigned";
+        return [projectId, name, docs] as [string, string, DocItem[]];
+      })
+      .sort(([, aName], [, bName]) => {
+        if (aName === "Unassigned") return 1;
+        if (bName === "Unassigned") return -1;
+        return aName.localeCompare(bName);
+      });
+  }, [docs, projectMap]);
 }
+// --- END OF FIX ---
 
 const Caret: React.FC<{ open: boolean }> = ({ open }) => (
   <svg
@@ -59,14 +74,12 @@ const DocumentsList: React.FC<Props> = ({
   onRenameProject,
   onMoveDoc,
 }) => {
-  const groups = useGroups(documents);
+  const groups = useGroups(documents, projects); // <-- FIX: Pass projects
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    groups.forEach(([k]) => (init[k] = true));
+    groups.forEach(([projectId]) => (init[projectId] = true));
     return init;
   });
-
-  const { deleteDocument } = useDocuments(); // ✅ integrated backend delete
 
   if (!documents.length) {
     return (
@@ -81,23 +94,26 @@ const DocumentsList: React.FC<Props> = ({
     <div>
       <h3 className="text-sm font-semibold text-gray-100 mb-2">Projects</h3>
       <div className="space-y-2 overflow-y-auto max-h-[50vh] pr-1">
-        {groups.map(([project, docs]) => {
-          const isOpen = open[project] ?? true;
-          const canRename = project !== "Unassigned";
+        {/* FIX: Destructure new group structure [projectId, projectName, docs] */}
+        {groups.map(([projectId, projectName, docs]) => {
+          const isOpen = open[projectId] ?? true;
+          const canRename = projectId !== "Unassigned";
           return (
             <div
-              key={project}
+              key={projectId}
               className="rounded-md border border-gray-800/60 bg-gray-900/50"
             >
               {/* Project header */}
               <div className="flex items-center justify-between px-2 py-2 rounded-t-md">
                 <button
                   className="flex items-center gap-2 text-left text-gray-100 truncate hover:opacity-90"
-                  onClick={() => setOpen((s) => ({ ...s, [project]: !isOpen }))}
-                  title={project}
+                  onClick={() =>
+                    setOpen((s) => ({ ...s, [projectId]: !isOpen }))
+                  }
+                  title={projectName}
                 >
                   <Caret open={isOpen} />
-                  <span className="truncate">{project}</span>
+                  <span className="truncate">{projectName}</span>
                 </button>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400">{docs.length}</span>
@@ -106,11 +122,14 @@ const DocumentsList: React.FC<Props> = ({
                       className="rounded px-1.5 py-0.5 text-xs bg-gray-800 hover:bg-gray-700"
                       title="Rename project"
                       onClick={() => {
-                        const next = window.prompt("Rename project", project);
+                        const next = window.prompt(
+                          "Rename project",
+                          projectName
+                        );
                         if (!next) return;
                         const trimmed = next.trim();
-                        if (!trimmed || trimmed === project) return;
-                        onRenameProject(project, trimmed);
+                        if (!trimmed || trimmed === projectName) return;
+                        onRenameProject(projectName, trimmed);
                       }}
                     >
                       Rename
@@ -146,7 +165,6 @@ const DocumentsList: React.FC<Props> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             onConfirmDelete(d);
-                            deleteDocument(d); // ✅ call backend delete
                           }}
                           className={`p-1 rounded ${
                             selectedId === d.id
