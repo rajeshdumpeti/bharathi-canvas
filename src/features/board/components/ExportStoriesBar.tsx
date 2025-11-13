@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FiDownload, FiFileText, FiFile } from "react-icons/fi";
+import { FiDownload, FiFileText } from "react-icons/fi";
 
 type StatusId = "to_do" | "in_progress" | "validation" | "done";
 
