@@ -1,17 +1,20 @@
 import React, { useMemo, useState } from "react";
 import { useDocuments } from "../hooks/useDocuments";
-import { useProjectStore } from "stores/projectStore"; // ✅ new
+import { useProjectStore } from "stores/projectStore";
 
 const MAX_MB = 5;
 
 const UploadCard: React.FC = () => {
-  const { projectId, uploadDocument } = useDocuments(); // ✅ using new hook + store
+  // --- FIX ---
+  // Removed `refresh` from this hook. We will rely on the
+  // optimistic update in the store.
+  const { projectId, uploadDocument } = useDocuments();
+  // --- END FIX ---
+
   const { projects, selectedProjectId, selectProject } = useProjectStore();
 
   const [project, setProject] = useState<string>("");
 
-  // Distinct project names from current docs (for dropdown)
-  // ✅ Use backend projects from board store
   const projectOptions = useMemo(
     () =>
       (projects || []).map((p) => ({
@@ -23,9 +26,16 @@ const UploadCard: React.FC = () => {
 
   const onFiles = async (files: FileList | null) => {
     if (!files || !files.length || !projectId) return;
+
     for (const file of Array.from(files)) {
-      await uploadDocument(projectId, file); // ✅ upload to backend
+      await uploadDocument(projectId, file);
     }
+
+    // --- FIX ---
+    // We REMOVED the `refresh()` call here.
+    // The `uploadDocument` function already optimistically
+    // updated the `items` array in our store.
+    // --- END FIX ---
   };
 
   return (
@@ -57,7 +67,6 @@ const UploadCard: React.FC = () => {
 
       <h3 className="text-sm font-semibold text-gray-100">Upload document</h3>
 
-      {/* Project select */}
       <div className="mt-2">
         <label className="block text-xs text-gray-400 mb-1">Project</label>
         <select
@@ -66,7 +75,7 @@ const UploadCard: React.FC = () => {
           onChange={(e) => {
             const val = e.target.value;
             setProject(val);
-            if (val) selectProject(val); // ✅ sync with global project store
+            if (val) selectProject(val);
           }}
         >
           {projectOptions.map((p) => (
@@ -77,7 +86,6 @@ const UploadCard: React.FC = () => {
         </select>
       </div>
 
-      {/* File upload area */}
       <div className="mt-3 grid gap-2">
         <label className="flex h-24 cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-gray-700 bg-gray-800/50 text-gray-200 hover:border-gray-600">
           <input

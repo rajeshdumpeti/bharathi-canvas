@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FiDownload } from "react-icons/fi";
+import { FiDownload, FiFileText } from "react-icons/fi";
 
 type StatusId = "to_do" | "in_progress" | "validation" | "done";
 
@@ -145,20 +145,41 @@ const ExportStoriesBar: React.FC<Props> = ({ project, items }) => {
     };
   }, [projectName]);
 
+  const handleExportCSV = () => {
+    if (items.length === 0) {
+      alert("No stories to export. Please adjust your filters.");
+      return;
+    }
+    downloadCSV(stamped.csv, items);
+  };
+
+  const handleExportPDF = () => {
+    if (items.length === 0) {
+      alert("No stories to export. Please adjust your filters.");
+      return;
+    }
+    downloadPDF(stamped.pdf, projectName, items);
+  };
+
   return (
-    <div className="flex items-center gap-2 justify-end ">
+    <div className="flex items-center gap-3">
       <button
-        onClick={() => downloadCSV(stamped.csv, items)}
-        className="rounded-md border px-2 py-1 text-sm hover:bg-gray-50"
-        title="Exports the currently filtered list to CSV"
+        onClick={handleExportCSV}
+        className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        title={`Export ${items.length} stories to CSV`}
+        disabled={items.length === 0}
       >
-        <FiDownload /> Export CSV
+        <FiDownload className="h-4 w-4" />
+        Export CSV
       </button>
+
       <button
-        onClick={() => downloadPDF(stamped.pdf, projectName, items)}
-        className="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-        title="Exports the currently filtered list to PDF"
+        onClick={handleExportPDF}
+        className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        title={`Export ${items.length} stories to PDF`}
+        disabled={items.length === 0}
       >
+        <FiFileText className="h-4 w-4" />
         Export PDF
       </button>
     </div>

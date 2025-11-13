@@ -2,19 +2,21 @@ import React, { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
 import { Modal } from "packages/ui";
 import type { DocItem } from "types/documents";
-import { useDocuments } from "./hooks/useDocuments"; // ✅ new hook
+import { useDocuments } from "./hooks/useDocuments";
 import UploadCard from "./components/UploadCard";
 import DocumentsList from "./components/DocumentsList";
 import PreviewPane from "./components/PreviewPane";
+import type { Project } from "types/board"; // <-- Import Project type
 
 const DocumentsView: React.FC = () => {
   const {
     items: documents,
+    projects, // <-- FIX: Get the full project list
     selectedId,
     setSelected,
     deleteDocument,
     refresh,
-  } = useDocuments(); // ✅ all state from hook + store
+  } = useDocuments();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDeleteDocOpen, setIsDeleteDocOpen] = useState(false);
@@ -25,17 +27,16 @@ const DocumentsView: React.FC = () => {
     [documents, selectedId]
   );
 
-  // Distinct project names (excluding empty/unassigned)
-  const projects = useMemo(() => {
-    const set = new Set<string>();
-    documents.forEach((d) => {
-      const p = (d as any).project?.trim?.() ?? "";
-      if (p) set.add(p);
-    });
-    const arr = Array.from(set).sort((a, b) => a.localeCompare(b));
-    if (!arr.includes("Unassigned")) arr.unshift("Unassigned");
-    return arr;
-  }, [documents]);
+  // --- FIX: Create a project name lookup map ---
+  const projectMap = useMemo(
+    () => new Map(projects.map((p: Project) => [p.id, p.name])),
+    [projects]
+  );
+  // --- END FIX ---
+
+  // --- REMOVED ---
+  // const projects = useMemo(() => { ... }, [documents]);
+  // --- END REMOVED ---
 
   useEffect(() => {
     const debouncedHandler = debounce(() => {
@@ -55,14 +56,13 @@ const DocumentsView: React.FC = () => {
 
   const handleDeleteDocument = async () => {
     if (!docToDelete) return;
-    await deleteDocument(docToDelete); // ✅ backend delete
+    await deleteDocument(docToDelete);
     if (selectedId === docToDelete.id) setSelected(null);
     setIsDeleteDocOpen(false);
     setDocToDelete(null);
-    refresh(); // ✅ refresh list after delete
+    refresh();
   };
 
-  // local rename + move still client-only (optional backend later)
   const renameProject = (oldName: string, newName: string) => {
     console.warn("Rename not persisted yet; local only.");
   };
@@ -75,15 +75,12 @@ const DocumentsView: React.FC = () => {
     <div className="h-full w-full flex flex-col bg-gray-50">
       <div className="flex-1 min-h-0 w-full">
         <div className="relative h-full w-full flex overflow-hidden">
-          {/* mobile backdrop */}
           <div
             onClick={() => setIsSidebarOpen(false)}
             className={`lg:hidden fixed inset-0 z-20 bg-black/40 transition-opacity duration-300 ${
               isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           />
-
-          {/* Sidebar */}
           <aside
             aria-label="Documents sidebar"
             className={`
@@ -104,7 +101,7 @@ const DocumentsView: React.FC = () => {
                   if (window.innerWidth < 1024) setIsSidebarOpen(false);
                 }}
                 onConfirmDelete={confirmDeleteDocument}
-                projects={projects}
+                projects={projects} // <-- FIX: Pass the full project list
                 onRenameProject={renameProject}
                 onMoveDoc={moveDoc}
               />
@@ -119,13 +116,17 @@ const DocumentsView: React.FC = () => {
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                     Documents
                   </h1>
+
+                  {/* --- FIX: Look up project name correctly --- */}
                   {selectedDoc && (
                     <div className="hidden sm:block text-sm text-gray-500">
-                      {(selectedDoc as any).project
-                        ? `Project: ${(selectedDoc as any).project}`
-                        : "Unassigned"}
+                      {`Project: ${
+                        projectMap.get(selectedDoc.project_id || "") ||
+                        "Unassigned"
+                      }`}
                     </div>
                   )}
+                  {/* --- END FIX --- */}
                 </div>
               </div>
 
@@ -134,7 +135,6 @@ const DocumentsView: React.FC = () => {
               </div>
             </div>
 
-            {/* Delete modal */}
             <Modal
               isOpen={isDeleteDocOpen}
               onClose={() => {

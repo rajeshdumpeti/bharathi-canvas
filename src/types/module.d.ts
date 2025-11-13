@@ -6,6 +6,7 @@ declare module "packages/ui" {
     title?: React.ReactNode;
     className?: string;
     children?: React.ReactNode;
+    size?: string;
   }
   export const Modal: React.FC<ModalProps>;
 
@@ -14,6 +15,7 @@ declare module "packages/ui" {
     description?: React.ReactNode;
     bullets?: React.ReactNode[];
     className?: string;
+    icon?: React.ReactElement;
   }
   export const EmptyState: React.FC<EmptyStateProps>;
 }
